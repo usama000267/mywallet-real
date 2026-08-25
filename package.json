@@ -1,0 +1,16 @@
+{
+  "name": "mywallet-real",
+  "version": "1.0.0",
+  "description": "MyWallet Real wallet backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "express-session": "^1.19.0"
+  }
+}

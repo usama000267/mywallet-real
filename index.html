@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Meta Earn - Real</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f3f6fa;
+    color:#172033;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.topbar{
+    background:#111827;
+    color:#fff;
+    padding:16px 20px;
+}
+
+.topbar-inner{
+    max-width:1100px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.brand{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:20px;
+}
+
+.auth{
+    max-width:430px;
+    margin:60px auto;
+}
+
+.card{
+    background:#fff;
+    padding:22px;
+    border-radius:14px;
+    margin-bottom:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.07);
+}
+
+h1,h2,h3{
+    margin-bottom:15px;
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    margin-bottom:7px;
+    font-weight:bold;
+}
+
+input,select{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+}
+
+button{
+    cursor:pointer;
+}
+
+.primary{
+    width:100%;
+    padding:13px;
+    border:0;
+    border-radius:8px;
+    background:#2563eb;
+    color:#fff;
+    font-weight:bold;
+}
+
+.logout{
+    background:#ef4444;
+    border:0;
+    color:#fff;
+    padding:9px 15px;
+    border-radius:8px;
+}
+
+.tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+}
+
+.tab{
+    flex:1;
+    border:0;
+    padding:12px;
+    border-radius:8px;
+    background:#e5e7eb;
+}
+
+.tab.active{
+    background:#111827;
+    color:#fff;
+}
+
+.message{
+    display:none;
+    padding:11px;
+    border-radius:8px;
+    margin-bottom:15px;
+}
+
+.message.show{
+    display:block;
+}
+
+.success{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.balance-card{
+    background:#111827;
+    color:#fff;
+}
+
+.balance{
+    font-size:32px;
+    font-weight:bold;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.actions{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.action{
+    padding:18px;
+    border:0;
+    border-radius:12px;
+    color:#fff;
+    font-size:17px;
+    font-weight:bold;
+}
+
+.deposit{
+    background:#16a34a;
+}
+
+.withdraw{
+    background:#dc2626;
+}
+
+.reserve{
+    background:#7c3aed;
+}
+
+.action:disabled{
+    opacity:.5;
+}
+
+.panel{
+    border-left:5px solid #2563eb;
+}
+
+.address{
+    background:#f3f4f6;
+    padding:13px;
+    border-radius:8px;
+    word-break:break-all;
+    margin:10px 0;
+}
+
+.demo{
+    display:inline-block;
+    background:#fef3c7;
+    color:#92400e;
+    padding:6px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.history{
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:10px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:left;
+    white-space:nowrap;
+}
+
+th{
+    background:#f9fafb;
+}
+
+.status{
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.pending{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.approved,
+.completed{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.rejected{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.countdown{
+    font-size:18px;
+    font-weight:bold;
+    margin:12px 0;
+}
+
+.referral-card{
+    grid-column:1 / -1;
+}
+
+.referral-row{
+    display:flex;
+    gap:8px;
+    margin-top:7px;
+}
+
+.referral-row input{
+    flex:1;
+}
+
+.copy-btn{
+    background:#2563eb;
+    color:white;
+    padding:12px 16px;
+    border:0;
+    border-radius:8px;
+    font-weight:bold;
+    min-width:80px;
+}
+
+.referral-stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:15px;
+}
+
+.referral-stat{
+    background:#f3f4f6;
+    padding:14px;
+    border-radius:10px;
+}
+
+.referral-stat-title{
+    color:#6b7280;
+    font-size:13px;
+    margin-bottom:5px;
+}
+
+.referral-stat-value{
+    font-size:20px;
+    font-weight:bold;
+}
+
+.referral-code{
+    margin-top:10px;
+    font-weight:bold;
+}
+
+@media(max-width:750px){
+
+    .grid,
+    .actions{
+        grid-template-columns:1fr;
+    }
+
+    .topbar-inner{
+        flex-direction:column;
+        gap:10px;
+    }
+
+    .referral-card{
+        grid-column:auto;
+    }
+
+    .referral-row{
+        flex-direction:column;
+    }
+
+    .copy-btn{
+        width:100%;
+    }
+
+    .referral-stats{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= TOPBAR ================= -->
+
+<header id="topbar" class="topbar hidden">
+
+<div class="topbar-inner">
+
+<div class="brand">
+Meta Earn
+</div>
+
+<div>
+
+<span id="welcome"></span>
+
+<button
+id="logout"
+class="logout">
+Logout
+</button>
+
+</div>
+
+</div>
+
+</header>
+
+
+<!-- ================= AUTH ================= -->
+
+<section id="authSection">
+
+<div class="auth">
+
+<div class="card">
+
+<h1>MyWallet Real</h1>
+
+<p style="margin-bottom:15px;color:#666">
+Demo / Testing System
+</p>
+
+<div
+id="authMessage"
+class="message">
+</div>
+
+
+<div class="tabs">
+
+<button
+id="loginTab"
+class="tab active">
+Login
+</button>
+
+<button
+id="registerTab"
+class="tab">
+Register
+</button>
+
+</div>
+
+
+<!-- LOGIN -->
+
+<form id="loginForm">
+
+<div class="field">
+
+<label>Email</label>
+
+<input
+id="loginEmail"
+type="email"
+autocomplete="username"
+required>
+
+</div>
+
+
+<div class="field">
+
+<label>Password</label>
+
+<input
+id="loginPassword"
+type="password"
+autocomplete="current-password"
+required>
+
+</div>
+
+
+<button
+type="submit"
+class="primary">
+
+Login
+
+</button>
+
+</form>
+
+
+<!-- REGISTER -->
+
+<form
+id="registerForm"
+class="hidden">
+
+<div class="field">
+
+<label>Name</label>
+
+<input
+id="registerName"
+required>
+
+</div>
+
+
+<div class="field">
+
+<label>Email</label>
+
+<input
+id="registerEmail"
+type="email"
+required>
+
+</div>
+
+
+<div class="field">
+
+<label>Password</label>
+
+<input
+id="registerPassword"
+type="password"
+minlength="8"
+required>
+
+</div>
+
+
+<!-- REFERRAL -->
+
+<div
+id="referralRegisterBox"
+class="field hidden">
+
+<label>
+Referral Code
+</label>
+
+<input
+id="registerReferralCode"
+readonly>
+
+<p
+style="
+font-size:12px;
+color:#6b7280;
+margin-top:6px;
+">
+
+You joined through a referral link.
+
+</p>
+
+</div>
+
+
+<button
+type="submit"
+class="primary">
+
+Create Account
+
+</button>
+
+</form>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ================= DASHBOARD ================= -->
+
+<section
+id="dashboard"
+class="hidden">
+
+<div class="container">
+
+
+<!-- TOP GRID -->
+
+<div class="grid">
+
+
+<!-- BALANCE -->
+
+<div class="card balance-card">
+
+<h3>
+Wallet Balance
+</h3>
+
+<div
+id="balance"
+class="balance">
+
+0.000000 USDT
+
+</div>
+
+</div>
+
+
+<!-- USER -->
+
+<div class="card">
+
+<h3>
+Welcome
+</h3>
+
+<p id="userName">
+-
+</p>
+
+<p id="userEmail">
+-
+</p>
+
+</div>
+
+
+<!-- REFERRAL -->
+
+<div class="card referral-card">
+
+<h3>
+Referral Program
+</h3>
+
+<p
+style="
+margin-bottom:10px;
+color:#666;
+">
+
+Referral Bonus:
+<strong>10%</strong>
+
+</p>
+
+
+<label>
+Your Referral Link
+</label>
+
+
+<div class="referral-row">
+
+<input
+id="referralLink"
+type="text"
+readonly
+placeholder="Loading referral link...">
+
+
+<button
+id="copyReferral"
+type="button"
+class="copy-btn">
+
+Copy
+
+</button>
+
+</div>
+
+
+<div
+id="referralCodeText"
+class="referral-code">
+
+Referral Code: Loading...
+
+</div>
+
+
+<div class="referral-stats">
+
+
+<div class="referral-stat">
+
+<div class="referral-stat-title">
+Total Referral Bonus
+</div>
+
+<div
+id="referralBonus"
+class="referral-stat-value">
+
+0.000000 USDT
+
+</div>
+
+</div>
+
+
+<div class="referral-stat">
+
+<div class="referral-stat-title">
+Successful Referrals
+</div>
+
+<div
+id="referralCount"
+class="referral-stat-value">
+
+0
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ACTIONS -->
+
+<div class="card">
+
+<h2>
+Wallet Actions
+</h2>
+
+
+<div class="actions">
+
+<button
+id="depositButton"
+class="action deposit">
+
+Deposit
+
+</button>
+
+
+<button
+id="withdrawButton"
+class="action withdraw">
+
+Withdraw
+
+</button>
+
+
+<button
+id="reservationButton"
+class="action reserve">
+
+Reservation
+
+</button>
+
+</div>
+
+</div>
+
+
+<div
+id="dashboardMessage"
+class="message">
+</div>
+
+
+<!-- ================= DEPOSIT ================= -->
+
+<div
+id="depositPanel"
+class="card panel hidden">
+
+<h2>
+Demo Deposit
+</h2>
+
+<p
+style="
+color:#666;
+margin-bottom:15px;
+">
+
+This is a testing request.
+No real cryptocurrency is transferred automatically.
+
+</p>
+
+
+<form id="depositForm">
+
+
+<div class="field">
+
+<label>
+Network
+</label>
+
+<select id="depositNetwork">
+
+<option value="BEP20">
+USDT BEP20
+</option>
+
+<option value="TRC20">
+USDT TRC20
+</option>
+
+</select>
+
+</div>
+
+
+<div
+id="depositAddress"
+class="address">
+
+Loading...
+
+</div>
+
+
+<div class="field">
+
+<label>
+Amount
+</label>
+
+<input
+id="depositAmount"
+type="number"
+min="0"
+step="0.000001"
+required>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Demo Transaction Reference
+</label>
+
+<input
+id="txHash"
+required>
+
+</div>
+
+
+<button
+type="submit"
+class="primary">
+
+Submit Deposit Request
+
+</button>
+
+</form>
+
+</div>
+
+
+<!-- ================= WITHDRAW ================= -->
+
+<div
+id="withdrawPanel"
+class="card panel hidden">
+
+<h2>
+Demo Withdrawal
+</h2>
+
+<p
+style="
+color:#666;
+margin-bottom:15px;
+">
+
+Withdrawal requests are recorded for testing only.
+
+</p>
+
+
+<form id="withdrawForm">
+
+
+<div class="field">
+
+<label>
+Network
+</label>
+
+<select id="withdrawNetwork">
+
+<option value="BEP20">
+USDT BEP20
+</option>
+
+<option value="TRC20">
+USDT TRC20
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Amount
+</label>
+
+<input
+id="withdrawAmount"
+type="number"
+min="0"
+step="0.000001"
+required>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Demo Wallet Address
+</label>
+
+<input
+id="withdrawAddress"
+required>
+
+</div>
+
+
+<button
+type="submit"
+class="primary">
+
+Submit Withdrawal Request
+
+</button>
+
+</form>
+
+</div>
+
+
+<!-- ================= RESERVATION ================= -->
+
+<div
+id="reservationPanel"
+class="card panel hidden">
+
+<span class="demo">
+DEMO / TEST ONLY
+</span>
+
+<h2>
+Reservation
+</h2>
+
+<p>
+This feature simulates a reward for testing the website.
+It does not represent a real investment return.
+</p>
+
+
+<div
+id="reservationStatus"
+style="margin-top:15px">
+
+Checking...
+
+</div>
+
+
+<div
+id="countdown"
+class="countdown">
+</div>
+
+
+<button
+id="reserveNow"
+class="primary">
+
+Start Demo Reservation
+
+</button>
+
+</div>
+
+
+<!-- ================= DEPOSIT HISTORY ================= -->
+
+<div class="card">
+
+<h2>
+Deposit History
+</h2>
+
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Amount</th>
+<th>Network</th>
+<th>Status</th>
+<th>Reference</th>
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="depositHistory">
+
+<tr>
+
+<td colspan="6">
+No deposits yet.
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ================= WITHDRAW HISTORY ================= -->
+
+<div class="card">
+
+<h2>
+Withdrawal History
+</h2>
+
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Amount</th>
+<th>Network</th>
+<th>Status</th>
+<th>Address</th>
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="withdrawHistory">
+
+<tr>
+
+<td colspan="6">
+No withdrawals yet.
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ================= RESERVATION HISTORY ================= -->
+
+<div class="card">
+
+<h2>
+Reservation History
+</h2>
+
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>Before</th>
+<th>Demo %</th>
+<th>Reward</th>
+<th>After</th>
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="reservationHistory">
+
+<tr>
+
+<td colspan="6">
+No reservations yet.
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ================= REFERRAL HISTORY ================= -->
+
+<div class="card">
+
+<h2>
+Referral History
+</h2>
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>User</th>
+<th>Email</th>
+<th>Deposit</th>
+<th>Bonus %</th>
+<th>Bonus</th>
+<th>Date</th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="referralHistory">
+
+<tr>
+
+<td colspan="6">
+No referral bonuses yet.
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<script>
+
+let config = null;
+let countdownTimer = null;
+
+let currentReferralCode = "";
+
+
+/* ================= HELPERS ================= */
+
+const $ = id =>
+document.getElementById(id);
+
+
+function showMessage(
+    element,
+    text,
+    type
+){
+
+    element.textContent = text;
+
+    element.className =
+        "message show " + type;
+}
+
+
+function escapeHtml(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+
+/* ================= REFERRAL FROM URL ================= */
+
+function getReferralFromURL(){
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const ref =
+        params.get("ref");
+
+    if(!ref){
+        return "";
+    }
+
+    return String(ref)
+        .trim()
+        .toUpperCase();
+}
+
+
+function setupRegisterReferral(){
+
+    const referralCode =
+        getReferralFromURL();
+
+    if(!referralCode){
+
+        $("referralRegisterBox")
+            .classList
+            .add("hidden");
+
+        return;
+    }
+
+
+    $("registerReferralCode")
+        .value = referralCode;
+
+
+    $("referralRegisterBox")
+        .classList
+        .remove("hidden");
+}
+
+
+/* ================= TABS ================= */
+
+$("loginTab").onclick = () => {
+
+    $("loginTab")
+        .classList
+        .add("active");
+
+    $("registerTab")
+        .classList
+        .remove("active");
+
+    $("loginForm")
+        .classList
+        .remove("hidden");
+
+    $("registerForm")
+        .classList
+        .add("hidden");
+
+};
+
+
+$("registerTab").onclick = () => {
+
+    $("registerTab")
+        .classList
+        .add("active");
+
+    $("loginTab")
+        .classList
+        .remove("active");
+
+    $("registerForm")
+        .classList
+        .remove("hidden");
+
+    $("loginForm")
+        .classList
+        .add("hidden");
+
+    setupRegisterReferral();
+
+};
+
+
+/* ================= LOGIN ================= */
+
+$("loginForm").onsubmit =
+async e => {
+
+    e.preventDefault();
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/login",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        email:
+                            $("loginEmail")
+                            .value
+                            .trim(),
+
+                        password:
+                            $("loginPassword")
+                            .value
+
+                    })
+                }
+            );
+
+
+        const data =
+            await r.json();
+
+
+        if(!r.ok){
+
+            showMessage(
+                $("authMessage"),
+                data.message ||
+                    "Login failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        await loadDashboard();
+
+
+    }catch(err){
+
+        console.error(err);
+
+        showMessage(
+            $("authMessage"),
+            "Server connection error.",
+            "error"
+        );
+
+    }
+
+};
+
+
+/* ================= REGISTER ================= */
+
+$("registerForm").onsubmit =
+async e => {
+
+    e.preventDefault();
+
+
+    const referralCode =
+        $("registerReferralCode")
+            .value
+            .trim()
+            .toUpperCase();
+
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/register",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        name:
+                            $("registerName")
+                            .value
+                            .trim(),
+
+                        email:
+                            $("registerEmail")
+                            .value
+                            .trim(),
+
+                        password:
+                            $("registerPassword")
+                            .value,
+
+                        referralCode:
+                            referralCode || ""
+
+                    })
+                }
+            );
+
+
+        const data =
+            await r.json();
+
+
+        if(!r.ok){
+
+            showMessage(
+                $("authMessage"),
+                data.message ||
+                    "Registration failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("authMessage"),
+            "Account created successfully.",
+            "success"
+        );
+
+
+        await loadDashboard();
+
+
+    }catch(err){
+
+        console.error(err);
+
+        showMessage(
+            $("authMessage"),
+            "Server connection error.",
+            "error"
+        );
+
+    }
+
+};
+
+
+/* ================= LOGOUT ================= */
+
+$("logout").onclick =
+async () => {
+
+    try{
+
+        await fetch(
+            "/api/logout",
+            {
+                method:"POST"
+            }
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+
+    stopCountdown();
+
+
+    $("dashboard")
+        .classList
+        .add("hidden");
+
+    $("topbar")
+        .classList
+        .add("hidden");
+
+    $("authSection")
+        .classList
+        .remove("hidden");
+
+};
+
+
+/* ================= CONFIG ================= */
+
+async function loadConfig(){
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/config"
+            );
+
+
+        config =
+            await r.json();
+
+
+        updateDepositAddress();
+
+
+    }catch(e){
+
+        $("depositAddress")
+            .textContent =
+            "Demo address unavailable.";
+
+    }
+
+}
+
+
+function updateDepositAddress(){
+
+    if(
+        !config ||
+        !config.networks
+    ){
+
+        return;
+    }
+
+
+    const network =
+        $("depositNetwork")
+        .value;
+
+
+    if(network === "BEP20"){
+
+        $("depositAddress")
+            .innerHTML =
+            "<strong>Demo BEP20 Address:</strong><br>" +
+            escapeHtml(
+                config.networks.bep20.address ||
+                "Not configured"
+            );
+
+    }else{
+
+        $("depositAddress")
+            .innerHTML =
+            "<strong>Demo TRC20 Address:</strong><br>" +
+            escapeHtml(
+                config.networks.trc20.address ||
+                "Not configured"
+            );
+
+    }
+
+}
+
+
+$("depositNetwork").onchange =
+updateDepositAddress;
+
+
+/* ================= DASHBOARD ================= */
+
+async function loadDashboard(){
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/dashboard"
+            );
+
+
+        if(!r.ok){
+
+            $("authSection")
+                .classList
+                .remove("hidden");
+
+            $("dashboard")
+                .classList
+                .add("hidden");
+
+            $("topbar")
+                .classList
+                .add("hidden");
+
+            return;
+        }
+
+
+        const data =
+            await r.json();
+
+
+        $("authSection")
+            .classList
+            .add("hidden");
+
+        $("dashboard")
+            .classList
+            .remove("hidden");
+
+        $("topbar")
+            .classList
+            .remove("hidden");
+
+
+        $("userName")
+            .textContent =
+            data.user.name;
+
+
+        $("userEmail")
+            .textContent =
+            data.user.email;
+
+
+        $("welcome")
+            .textContent =
+            "Welcome, " +
+            data.user.name;
+
+
+        $("balance")
+            .textContent =
+            Number(
+                data.user.balance || 0
+            ).toFixed(6) +
+            " USDT";
+
+
+        renderDeposits(
+            data.deposits || []
+        );
+
+
+        renderWithdrawals(
+            data.withdrawals || []
+        );
+
+
+        await loadConfig();
+
+        await loadReservations();
+
+        await loadReferral();
+
+
+    }catch(e){
+
+        console.error(e);
+
+        showMessage(
+            $("dashboardMessage"),
+            "Unable to load dashboard.",
+            "error"
+        );
+
+    }
+
+}
+
+
+/* ================= ACTIONS ================= */
+
+$("depositButton").onclick = () => {
+
+    $("depositPanel")
+        .classList
+        .remove("hidden");
+
+    $("withdrawPanel")
+        .classList
+        .add("hidden");
+
+    $("reservationPanel")
+        .classList
+        .add("hidden");
+
+};
+
+
+$("withdrawButton").onclick = () => {
+
+    $("withdrawPanel")
+        .classList
+        .remove("hidden");
+
+    $("depositPanel")
+        .classList
+        .add("hidden");
+
+    $("reservationPanel")
+        .classList
+        .add("hidden");
+
+};
+
+
+$("reservationButton").onclick = () => {
+
+    $("reservationPanel")
+        .classList
+        .remove("hidden");
+
+    $("depositPanel")
+        .classList
+        .add("hidden");
+
+    $("withdrawPanel")
+        .classList
+        .add("hidden");
+
+    loadReservations();
+
+};
+
+
+/* ================= DEPOSIT ================= */
+
+$("depositForm").onsubmit =
+async e => {
+
+    e.preventDefault();
+
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/deposits",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        amount:
+                            Number(
+                                $("depositAmount")
+                                .value
+                            ),
+
+                        network:
+                            $("depositNetwork")
+                            .value,
+
+                        txHash:
+                            $("txHash")
+                            .value
+                            .trim()
+
+                    })
+                }
+            );
+
+
+        const data =
+            await r.json();
+
+
+        if(!r.ok){
+
+            showMessage(
+                $("dashboardMessage"),
+                data.message ||
+                    "Deposit failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("dashboardMessage"),
+            "Deposit request submitted. Status: Pending.",
+            "success"
+        );
+
+
+        $("depositForm")
+            .reset();
+
+
+        updateDepositAddress();
+
+
+        await loadDashboard();
+
+
+    }catch(e){
+
+        showMessage(
+            $("dashboardMessage"),
+            "Server connection error.",
+            "error"
+        );
+
+    }
+
+};
+
+
+/* ================= WITHDRAW ================= */
+
+$("withdrawForm").onsubmit =
+async e => {
+
+    e.preventDefault();
+
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/withdrawals",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        amount:
+                            Number(
+                                $("withdrawAmount")
+                                .value
+                            ),
+
+                        network:
+                            $("withdrawNetwork")
+                            .value,
+
+                        walletAddress:
+                            $("withdrawAddress")
+                            .value
+                            .trim()
+
+                    })
+                }
+            );
+
+
+        const data =
+            await r.json();
+
+
+        if(!r.ok){
+
+            showMessage(
+                $("dashboardMessage"),
+                data.message ||
+                    "Withdrawal failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("dashboardMessage"),
+            "Withdrawal request submitted.",
+            "success"
+        );
+
+
+        $("withdrawForm")
+            .reset();
+
+
+        await loadDashboard();
+
+
+    }catch(e){
+
+        showMessage(
+            $("dashboardMessage"),
+            "Server connection error.",
+            "error"
+        );
+
+    }
+
+};
+
+
+/* ================= RESERVATIONS ================= */
+
+async function loadReservations(){
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/reservations"
+            );
+
+
+        if(!r.ok){
+
+            return;
+        }
+
+
+        const data =
+            await r.json();
+
+
+        renderReservations(
+            data.reservations || []
+        );
+
+
+        if(data.canReserve){
+
+            $("reserveNow")
+                .disabled = false;
+
+            $("reservationStatus")
+                .textContent =
+                "Demo reservation is available.";
+
+            stopCountdown();
+
+        }else{
+
+            $("reserveNow")
+                .disabled = true;
+
+            $("reservationStatus")
+                .textContent =
+                "Reservation is locked for 24 hours.";
+
+            startCountdown(
+                data.nextReservation
+            );
+
+        }
+
+
+    }catch(e){
+
+        $("reservationStatus")
+            .textContent =
+            "Unable to check reservation.";
+
+    }
+
+}
+
+
+/* ================= RESERVE ================= */
+
+$("reserveNow").onclick =
+async () => {
+
+    $("reserveNow")
+        .disabled = true;
+
+
+    $("reservationStatus")
+        .textContent =
+        "Processing demo reservation...";
+
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/reservations",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        const data =
+            await r.json();
+
+
+        if(!r.ok){
+
+            showMessage(
+                $("dashboardMessage"),
+                data.message ||
+                    "Reservation failed.",
+                "error"
+            );
+
+
+            await loadReservations();
+
+            return;
+        }
+
+
+        showMessage(
+            $("dashboardMessage"),
+            "Demo reservation completed. Reward: " +
+            Number(
+                data.profitAmount || 0
+            ).toFixed(6) +
+            " USDT.",
+            "success"
+        );
+
+
+        await loadDashboard();
+
+
+    }catch(e){
+
+        showMessage(
+            $("dashboardMessage"),
+            "Server connection error.",
+            "error"
+        );
+
+
+        $("reserveNow")
+            .disabled = false;
+
+    }
+
+};
+
+
+/* ================= COUNTDOWN ================= */
+
+function startCountdown(iso){
+
+    stopCountdown();
+
+
+    if(!iso){
+
+        return;
+    }
+
+
+    function update(){
+
+        const target =
+            new Date(iso)
+            .getTime();
+
+
+        const diff =
+            target -
+            Date.now();
+
+
+        if(diff <= 0){
+
+            stopCountdown();
+
+            $("reservationStatus")
+                .textContent =
+                "Demo reservation is available.";
+
+            $("reserveNow")
+                .disabled = false;
+
+            $("countdown")
+                .textContent = "";
+
+            return;
+        }
+
+
+        const h =
+            Math.floor(
+                diff /
+                (1000 * 60 * 60)
+            );
+
+
+        const m =
+            Math.floor(
+                (
+                    diff %
+                    (1000 * 60 * 60)
+                ) /
+                (1000 * 60)
+            );
+
+
+        const s =
+            Math.floor(
+                (
+                    diff %
+                    (1000 * 60)
+                ) /
+                1000
+            );
+
+
+        $("countdown")
+            .textContent =
+            "Next reservation: " +
+            h + "h " +
+            m + "m " +
+            s + "s";
+
+    }
+
+
+    update();
+
+
+    countdownTimer =
+        setInterval(
+            update,
+            1000
+        );
+
+}
+
+
+function stopCountdown(){
+
+    if(countdownTimer){
+
+        clearInterval(
+            countdownTimer
+        );
+
+        countdownTimer = null;
+
+    }
+
+}
+
+
+/* ================= REFERRAL ================= */
+
+async function loadReferral(){
+
+    try{
+
+        const r =
+            await fetch(
+                "/api/referral"
+            );
+
+
+        if(!r.ok){
+
+            return;
+        }
+
+
+        const data =
+            await r.json();
+
+
+        currentReferralCode =
+            data.referralCode || "";
+
+
+        $("referralLink")
+            .value =
+            data.referralLink || "";
+
+
+        $("referralCodeText")
+            .textContent =
+            "Referral Code: " +
+            (
+                data.referralCode ||
+                "-"
+            );
+
+
+        $("referralBonus")
+            .textContent =
+            Number(
+                data.totalBonus || 0
+            ).toFixed(6) +
+            " USDT";
+
+
+        $("referralCount")
+            .textContent =
+            (
+                data.referrals || []
+            ).length;
+
+
+        renderReferralHistory(
+            data.referrals || []
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "REFERRAL LOAD ERROR:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ================= COPY REFERRAL ================= */
+
+$("copyReferral").onclick =
+async () => {
+
+    const input =
+        $("referralLink");
+
+
+    const link =
+        input.value;
+
+
+    if(!link){
+
+        return;
+    }
+
+
+    try{
+
+        await navigator
+            .clipboard
+            .writeText(link);
+
+
+        $("copyReferral")
+            .textContent =
+            "Copied!";
+
+
+        setTimeout(() => {
+
+            $("copyReferral")
+                .textContent =
+                "Copy";
+
+        },1500);
+
+
+    }catch(error){
+
+        input.select();
+
+        document.execCommand(
+            "copy"
+        );
+
+
+        $("copyReferral")
+            .textContent =
+            "Copied!";
+
+
+        setTimeout(() => {
+
+            $("copyReferral")
+                .textContent =
+                "Copy";
+
+        },1500);
+
+    }
+
+};
+
+
+/* ================= HISTORY ================= */
+
+function renderDeposits(items){
+
+    const table =
+        $("depositHistory");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='6'>" +
+            "No deposits yet." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => `
+
+            <tr>
+
+                <td>
+                    ${escapeHtml(item.id)}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.amount || 0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.network
+                    )}
+                </td>
+
+                <td>
+
+                    <span
+                        class="status ${escapeHtml(
+                            item.status
+                        )}">
+
+                        ${escapeHtml(
+                            item.status
+                        )}
+
+                    </span>
+
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.tx_hash || "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.created_at || "-"
+                    )}
+                </td>
+
+            </tr>
+
+            `
+        ).join("");
+
+}
+
+
+function renderWithdrawals(items){
+
+    const table =
+        $("withdrawHistory");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='6'>" +
+            "No withdrawals yet." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => `
+
+            <tr>
+
+                <td>
+                    ${escapeHtml(item.id)}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.amount || 0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.network
+                    )}
+                </td>
+
+                <td>
+
+                    <span
+                        class="status ${escapeHtml(
+                            item.status
+                        )}">
+
+                        ${escapeHtml(
+                            item.status
+                        )}
+
+                    </span>
+
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.wallet_address ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.created_at ||
+                        "-"
+                    )}
+                </td>
+
+            </tr>
+
+            `
+        ).join("");
+
+}
+
+
+function renderReservations(items){
+
+    const table =
+        $("reservationHistory");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='6'>" +
+            "No reservations yet." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => `
+
+            <tr>
+
+                <td>
+                    ${escapeHtml(item.id)}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.balance_before ||
+                        0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${Number(
+                        item.profit_percent ||
+                        0
+                    ).toFixed(2)}%
+                </td>
+
+                <td>
+                    ${Number(
+                        item.profit_amount ||
+                        0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${Number(
+                        item.balance_after ||
+                        0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.created_at ||
+                        "-"
+                    )}
+                </td>
+
+            </tr>
+
+            `
+        ).join("");
+
+}
+
+
+function renderReferralHistory(items){
+
+    const table =
+        $("referralHistory");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='6'>" +
+            "No referral bonuses yet." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => `
+
+            <tr>
+
+                <td>
+                    ${escapeHtml(
+                        item.name || "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.email || "-"
+                    )}
+                </td>
+
+                <td>
+                    ${Number(
+                        item.deposit_amount ||
+                        0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${Number(
+                        item.bonus_percent ||
+                        0
+                    ).toFixed(2)}%
+                </td>
+
+                <td>
+                    ${Number(
+                        item.bonus_amount ||
+                        0
+                    ).toFixed(6)}
+                    USDT
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.created_at ||
+                        "-"
+                    )}
+                </td>
+
+            </tr>
+
+            `
+        ).join("");
+
+}
+
+
+/* ================= START ================= */
+
+setupRegisterReferral();
+
+loadDashboard();
+
+</script>
+
+</body>
+</html>
