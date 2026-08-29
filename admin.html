@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Meta Earn - Admin</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f3f6fa;
+    color:#172033;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.topbar{
+    background:#111827;
+    color:white;
+    padding:16px 20px;
+}
+
+.topbar-inner{
+    max-width:1200px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.brand{
+    font-size:22px;
+    font-weight:bold;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:white;
+    padding:22px;
+    border-radius:14px;
+    margin-bottom:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.07);
+}
+
+.login{
+    max-width:430px;
+    margin:70px auto;
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:7px;
+}
+
+input{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+}
+
+button{
+    border:0;
+    border-radius:8px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.primary{
+    width:100%;
+    background:#2563eb;
+    color:white;
+    padding:13px;
+}
+
+.logout{
+    background:#ef4444;
+    color:white;
+}
+
+.approve{
+    background:#16a34a;
+    color:white;
+}
+
+.reject{
+    background:#dc2626;
+    color:white;
+}
+
+.message{
+    padding:11px;
+    border-radius:8px;
+    margin-bottom:15px;
+    display:none;
+}
+
+.message.show{
+    display:block;
+}
+
+.success{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.error{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th,td{
+    padding:11px;
+    border-bottom:1px solid #e5e7eb;
+    text-align:left;
+    white-space:nowrap;
+}
+
+th{
+    background:#f9fafb;
+}
+
+.history{
+    overflow:auto;
+}
+
+.status{
+    padding:5px 9px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.pending{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.approved,
+.completed{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.rejected{
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.admin-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.stat{
+    background:#111827;
+    color:white;
+    padding:20px;
+    border-radius:12px;
+}
+
+.stat-number{
+    font-size:28px;
+    font-weight:bold;
+    margin-top:8px;
+}
+
+.section-title{
+    margin-bottom:15px;
+}
+
+.small{
+    font-size:13px;
+    color:#6b7280;
+}
+
+.action-group{
+    display:flex;
+    gap:5px;
+}
+
+@media(max-width:750px){
+
+    .admin-grid{
+        grid-template-columns:1fr;
+    }
+
+    .topbar-inner{
+        flex-direction:column;
+        gap:10px;
+    }
+
+    .action-group{
+        flex-direction:column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= TOPBAR ================= -->
+
+<header id="topbar" class="topbar hidden">
+
+<div class="topbar-inner">
+
+<div class="brand">
+Meta Earn Real — Admin
+</div>
+
+<button id="logout" class="logout">
+Logout
+</button>
+
+</div>
+
+</header>
+
+
+<!-- ================= LOGIN ================= -->
+
+<section id="loginSection">
+
+<div class="card login">
+
+<h1>Admin Login</h1>
+
+<p style="margin:10px 0 20px;color:#666">
+Meta Earn Demo Admin Panel
+</p>
+
+<div id="loginMessage" class="message"></div>
+
+<form id="loginForm">
+
+<div class="field">
+
+<label>Email</label>
+
+<input
+id="email"
+type="email"
+autocomplete="username"
+required
+>
+
+</div>
+
+<div class="field">
+
+<label>Password</label>
+
+<input
+id="password"
+type="password"
+autocomplete="current-password"
+required
+>
+
+</div>
+
+<button
+type="submit"
+class="primary">
+Admin Login
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+
+<!-- ================= ADMIN ================= -->
+
+<section id="adminSection" class="hidden">
+
+<div class="container">
+
+<div id="message" class="message"></div>
+
+
+<!-- ================= STATS ================= -->
+
+<div class="admin-grid">
+
+<div class="stat">
+
+<div>Total Users</div>
+
+<div
+id="usersCount"
+class="stat-number">
+0
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div>Pending Deposits</div>
+
+<div
+id="pendingDepositCount"
+class="stat-number">
+0
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div>Pending Withdrawals</div>
+
+<div
+id="pendingWithdrawalCount"
+class="stat-number">
+0
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ================= TOTAL BALANCE ================= -->
+
+<div class="card">
+
+<h2 class="section-title">
+Total User Balance
+</h2>
+
+<div
+id="balanceTotal"
+style="font-size:30px;font-weight:bold;">
+0.000000 USDT
+</div>
+
+</div>
+
+
+<!-- ================= DEPOSITS ================= -->
+
+<div class="card">
+
+<h2 class="section-title">
+Deposit Requests
+</h2>
+
+<p class="small" style="margin-bottom:15px">
+Review deposit requests before adding demo balance.
+</p>
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>User</th>
+<th>Email</th>
+<th>Amount</th>
+<th>Network</th>
+<th>Reference</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="depositTable">
+
+<tr>
+<td colspan="8">
+Loading...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ================= WITHDRAWALS ================= -->
+
+<div class="card">
+
+<h2 class="section-title">
+Withdrawal Requests
+</h2>
+
+<p class="small" style="margin-bottom:15px">
+Review withdrawal requests. Approval here only changes the demo request status.
+</p>
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>User</th>
+<th>Email</th>
+<th>Amount</th>
+<th>Network</th>
+<th>Wallet Address</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="withdrawTable">
+
+<tr>
+<td colspan="8">
+Loading...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ================= USERS ================= -->
+
+<div class="card">
+
+<h2 class="section-title">
+Users
+</h2>
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Balance</th>
+<th>Created</th>
+</tr>
+
+</thead>
+
+<tbody id="usersTable">
+
+<tr>
+<td colspan="5">
+Loading...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+<!-- ================= RESERVATIONS ================= -->
+
+<div class="card">
+
+<h2 class="section-title">
+Reservation History
+</h2>
+
+<p class="small" style="margin-bottom:15px">
+Demo reservation records generated by users.
+</p>
+
+<div class="history">
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>User</th>
+<th>Email</th>
+<th>Before</th>
+<th>Profit %</th>
+<th>Reward</th>
+<th>After</th>
+<th>Status</th>
+<th>Date</th>
+</tr>
+
+</thead>
+
+<tbody id="reservationTable">
+
+<tr>
+<td colspan="9">
+Loading...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<script>
+
+/* =====================================================
+   BASIC HELPERS
+===================================================== */
+
+const $ = id =>
+document.getElementById(id);
+
+
+function escapeHtml(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+
+function showMessage(
+    element,
+    text,
+    type
+){
+
+    element.textContent = text;
+
+    element.className =
+        "message show " + type;
+}
+
+
+/* =====================================================
+   ADMIN LOGIN
+===================================================== */
+
+$("loginForm").onsubmit =
+async function(event){
+
+    event.preventDefault();
+
+    const email =
+        $("email").value.trim();
+
+    const password =
+        $("password").value;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/login",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+                        email,
+                        password
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showMessage(
+                $("loginMessage"),
+                data.message ||
+                    "Invalid admin credentials.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        $("loginSection")
+            .classList
+            .add("hidden");
+
+
+        $("adminSection")
+            .classList
+            .remove("hidden");
+
+
+        $("topbar")
+            .classList
+            .remove("hidden");
+
+
+        await loadAdmin();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showMessage(
+            $("loginMessage"),
+            "Server connection error.",
+            "error"
+        );
+    }
+};
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+$("logout").onclick =
+async function(){
+
+    try{
+
+        await fetch(
+            "/api/admin/logout",
+            {
+                method:"POST"
+            }
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+    location.reload();
+};
+
+
+/* =====================================================
+   LOAD ADMIN DATA
+===================================================== */
+
+async function loadAdmin(){
+
+    try{
+
+        const responses =
+            await Promise.all([
+
+                fetch("/api/admin/users"),
+
+                fetch("/api/admin/deposits"),
+
+                fetch("/api/admin/withdrawals"),
+
+                fetch("/api/admin/reservations")
+
+            ]);
+
+
+        const [
+            usersResponse,
+            depositsResponse,
+            withdrawalsResponse,
+            reservationsResponse
+        ] = responses;
+
+
+        if(
+            usersResponse.status === 401 ||
+            depositsResponse.status === 401 ||
+            withdrawalsResponse.status === 401 ||
+            reservationsResponse.status === 401
+        ){
+
+            location.reload();
+
+            return;
+        }
+
+
+        const users =
+            await usersResponse.json();
+
+        const deposits =
+            await depositsResponse.json();
+
+        const withdrawals =
+            await withdrawalsResponse.json();
+
+        const reservations =
+            await reservationsResponse.json();
+
+
+        if(!usersResponse.ok){
+
+            throw new Error(
+                users.message ||
+                "Unable to load users."
+            );
+        }
+
+
+        if(!depositsResponse.ok){
+
+            throw new Error(
+                deposits.message ||
+                "Unable to load deposits."
+            );
+        }
+
+
+        if(!withdrawalsResponse.ok){
+
+            throw new Error(
+                withdrawals.message ||
+                "Unable to load withdrawals."
+            );
+        }
+
+
+        if(!reservationsResponse.ok){
+
+            throw new Error(
+                reservations.message ||
+                "Unable to load reservations."
+            );
+        }
+
+
+        const userItems =
+            users.users || [];
+
+        const depositItems =
+            deposits.deposits || [];
+
+        const withdrawalItems =
+            withdrawals.withdrawals || [];
+
+        const reservationItems =
+            reservations.reservations || [];
+
+
+        renderUsers(
+            userItems
+        );
+
+
+        renderDeposits(
+            depositItems
+        );
+
+
+        renderWithdrawals(
+            withdrawalItems
+        );
+
+
+        renderReservations(
+            reservationItems
+        );
+
+
+        /* USERS COUNT */
+
+        $("usersCount")
+            .textContent =
+            userItems.length;
+
+
+        /* PENDING DEPOSITS */
+
+        const pendingDeposits =
+            depositItems.filter(
+                item =>
+                    item.status === "pending"
+            ).length;
+
+
+        $("pendingDepositCount")
+            .textContent =
+            pendingDeposits;
+
+
+        /* PENDING WITHDRAWALS */
+
+        const pendingWithdrawals =
+            withdrawalItems.filter(
+                item =>
+                    item.status === "pending"
+            ).length;
+
+
+        $("pendingWithdrawalCount")
+            .textContent =
+            pendingWithdrawals;
+
+
+        /* TOTAL BALANCE */
+
+        const totalBalance =
+            userItems.reduce(
+                (sum,user) =>
+                    sum +
+                    Number(
+                        user.balance || 0
+                    ),
+                0
+            );
+
+
+        $("balanceTotal")
+            .textContent =
+            totalBalance.toFixed(6) +
+            " USDT";
+
+
+    }catch(error){
+
+        console.error(
+            "ADMIN LOAD ERROR:",
+            error
+        );
+
+        showMessage(
+            $("message"),
+            error.message ||
+                "Unable to load admin data.",
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   DEPOSITS
+===================================================== */
+
+function renderDeposits(items){
+
+    const table =
+        $("depositTable");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='8'>" +
+            "No deposit requests." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => {
+
+                let action = "-";
+
+
+                if(
+                    item.status ===
+                    "pending"
+                ){
+
+                    action = `
+
+                        <div class="action-group">
+
+                            <button
+                                class="approve"
+                                onclick="
+                                approveDeposit(
+                                    ${Number(item.id)}
+                                )">
+
+                                Approve
+
+                            </button>
+
+
+                            <button
+                                class="reject"
+                                onclick="
+                                rejectDeposit(
+                                    ${Number(item.id)}
+                                )">
+
+                                Reject
+
+                            </button>
+
+                        </div>
+
+                    `;
+                }
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHtml(item.id)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(item.name)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(item.email)}
+                        </td>
+
+                        <td>
+                            ${Number(
+                                item.amount || 0
+                            ).toFixed(6)}
+                            USDT
+                        </td>
+
+                        <td>
+                            ${escapeHtml(
+                                item.network
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(
+                                item.tx_hash || "-"
+                            )}
+                        </td>
+
+                        <td>
+
+                            <span
+                                class="
+                                status
+                                ${escapeHtml(
+                                    item.status
+                                )}
+                                ">
+
+                                ${escapeHtml(
+                                    item.status
+                                )}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+                            ${action}
+                        </td>
+
+                    </tr>
+
+                `;
+            }
+        ).join("");
+}
+
+
+/* =====================================================
+   APPROVE DEPOSIT
+===================================================== */
+
+async function approveDeposit(id){
+
+    if(
+        !confirm(
+            "Approve this deposit and add the amount to the user's demo balance?"
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/deposits/" +
+                id +
+                "/approve",
+                {
+                    method:"POST"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showMessage(
+                $("message"),
+                data.message ||
+                    "Deposit approval failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("message"),
+            "Deposit approved and demo balance updated.",
+            "success"
+        );
+
+
+        await loadAdmin();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showMessage(
+            $("message"),
+            "Server connection error.",
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   REJECT DEPOSIT
+===================================================== */
+
+async function rejectDeposit(id){
+
+    if(
+        !confirm(
+            "Reject this deposit request?"
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/deposits/" +
+                id +
+                "/reject",
+                {
+                    method:"POST"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showMessage(
+                $("message"),
+                data.message ||
+                    "Deposit rejection failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("message"),
+            "Deposit rejected.",
+            "success"
+        );
+
+
+        await loadAdmin();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showMessage(
+            $("message"),
+            "Server connection error.",
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   WITHDRAWALS
+===================================================== */
+
+function renderWithdrawals(items){
+
+    const table =
+        $("withdrawTable");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='8'>" +
+            "No withdrawal requests." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => {
+
+                let action = "-";
+
+
+                if(
+                    item.status ===
+                    "pending"
+                ){
+
+                    action = `
+
+                        <div class="action-group">
+
+                            <button
+                                class="approve"
+                                onclick="
+                                approveWithdrawal(
+                                    ${Number(item.id)}
+                                )">
+
+                                Approve
+
+                            </button>
+
+
+                            <button
+                                class="reject"
+                                onclick="
+                                rejectWithdrawal(
+                                    ${Number(item.id)}
+                                )">
+
+                                Reject
+
+                            </button>
+
+                        </div>
+
+                    `;
+                }
+
+
+                return `
+
+                    <tr>
+
+                        <td>
+                            ${escapeHtml(item.id)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(item.name)}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(item.email)}
+                        </td>
+
+                        <td>
+                            ${Number(
+                                item.amount || 0
+                            ).toFixed(6)}
+                            USDT
+                        </td>
+
+                        <td>
+                            ${escapeHtml(
+                                item.network
+                            )}
+                        </td>
+
+                        <td>
+                            ${escapeHtml(
+                                item.wallet_address
+                            )}
+                        </td>
+
+                        <td>
+
+                            <span
+                                class="
+                                status
+                                ${escapeHtml(
+                                    item.status
+                                )}
+                                ">
+
+                                ${escapeHtml(
+                                    item.status
+                                )}
+
+                            </span>
+
+                        </td>
+
+                        <td>
+                            ${action}
+                        </td>
+
+                    </tr>
+
+                `;
+            }
+        ).join("");
+}
+
+
+/* =====================================================
+   APPROVE WITHDRAWAL
+===================================================== */
+
+async function approveWithdrawal(id){
+
+    if(
+        !confirm(
+            "Approve this withdrawal request?"
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/withdrawals/" +
+                id +
+                "/approve",
+                {
+                    method:"POST"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showMessage(
+                $("message"),
+                data.message ||
+                    "Withdrawal approval failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("message"),
+            "Withdrawal approved.",
+            "success"
+        );
+
+
+        await loadAdmin();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showMessage(
+            $("message"),
+            "Server connection error.",
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   REJECT WITHDRAWAL
+===================================================== */
+
+async function rejectWithdrawal(id){
+
+    if(
+        !confirm(
+            "Reject this withdrawal? The amount will be returned to the user's demo balance."
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/withdrawals/" +
+                id +
+                "/reject",
+                {
+                    method:"POST"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            showMessage(
+                $("message"),
+                data.message ||
+                    "Withdrawal rejection failed.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        showMessage(
+            $("message"),
+            "Withdrawal rejected and amount returned to demo balance.",
+            "success"
+        );
+
+
+        await loadAdmin();
+
+
+    }catch(error){
+
+        console.error(error);
+
+        showMessage(
+            $("message"),
+            "Server connection error.",
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   USERS
+===================================================== */
+
+function renderUsers(items){
+
+    const table =
+        $("usersTable");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='5'>" +
+            "No users." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => `
+
+                <tr>
+
+                    <td>
+                        ${escapeHtml(item.id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.name)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.email)}
+                    </td>
+
+                    <td>
+                        ${Number(
+                            item.balance || 0
+                        ).toFixed(6)}
+                        USDT
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.created_at
+                        )}
+                    </td>
+
+                </tr>
+
+            `
+        ).join("");
+}
+
+
+/* =====================================================
+   RESERVATIONS
+===================================================== */
+
+function renderReservations(items){
+
+    const table =
+        $("reservationTable");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            "<tr>" +
+            "<td colspan='9'>" +
+            "No reservation history." +
+            "</td>" +
+            "</tr>";
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(
+            item => `
+
+                <tr>
+
+                    <td>
+                        ${escapeHtml(item.id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.name)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.email)}
+                    </td>
+
+                    <td>
+                        ${Number(
+                            item.balance_before || 0
+                        ).toFixed(6)}
+                        USDT
+                    </td>
+
+                    <td>
+                        ${Number(
+                            item.profit_percent || 0
+                        ).toFixed(2)}%
+                    </td>
+
+                    <td>
+                        ${Number(
+                            item.profit_amount || 0
+                        ).toFixed(6)}
+                        USDT
+                    </td>
+
+                    <td>
+                        ${Number(
+                            item.balance_after || 0
+                        ).toFixed(6)}
+                        USDT
+                    </td>
+
+                    <td>
+
+                        <span
+                            class="
+                            status
+                            ${escapeHtml(
+                                item.status
+                            )}
+                            ">
+
+                            ${escapeHtml(
+                                item.status
+                            )}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.created_at
+                        )}
+                    </td>
+
+                </tr>
+
+            `
+        ).join("");
+}
+
+</script>
+
+</body>
+</html>
