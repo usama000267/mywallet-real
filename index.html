@@ -778,39 +778,45 @@ th{
     }
 
     .bottom-nav{
-        position:fixed;
-        display:grid;
-        grid-template-columns:repeat(5,1fr);
-        left:0;
-        right:0;
-        bottom:0;
-        height:68px;
-        background:#fff;
-        border-top:1px solid var(--border);
-        z-index:100;
-        box-shadow:0 -5px 20px rgba(15,23,42,.08);
-    }
+    position:fixed;
+    display:grid;
+    grid-template-columns:repeat(7, minmax(0, 1fr));
+    left:0;
+    right:0;
+    bottom:0;
+    width:100%;
+    height:68px;
+    background:#fff;
+    border-top:1px solid var(--border);
+    z-index:9999;
+    box-shadow:0 -5px 20px rgba(15,23,42,.08);
+    overflow:visible;
+}
 
-    .bottom-btn{
-        border:0;
-        background:#fff;
-        color:#64748b;
-        display:flex;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        gap:3px;
-        font-size:10px;
-        font-weight:700;
-    }
+.bottom-btn{
+    width:100%;
+    min-width:0;
+    border:0;
+    background:#fff;
+    color:#64748b;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:3px;
+    font-size:10px;
+    font-weight:700;
+    padding:0 2px;
+    pointer-events:auto;
+}
 
-    .bottom-btn span:first-child{
-        font-size:18px;
-    }
+.bottom-btn span:first-child{
+    font-size:18px;
+}
 
-    .bottom-btn.active{
-        color:var(--primary);
-    }.bottom-nav{
+.bottom-btn.active{
+    color:var(--primary);
+}.bottom-nav{
     pointer-events:auto;
     z-index:9999;
 }
@@ -1239,22 +1245,46 @@ Account Status
 Active
 </span></div><br><button id="logoutProfile" class="primary">
 Logout
-</button></div></section></div></main><!-- ================= MOBILE NAV ================= --><nav class="bottom-nav"><button class="bottom-btn active" data-page="dashboard">
-<span>⌂</span>
-Home
-</button><button class="bottom-btn" data-page="deposit">
-<span>↓</span>
-Deposit
-</button><button class="bottom-btn" data-page="withdraw">
-<span>↑</span>
-Withdraw
-</button><button class="bottom-btn" data-page="reservation">
-<span>◆</span>
-Reserve
-</button><button class="bottom-btn" data-page="profile">
-<span>●</span>
-Profile
-</button></nav></section><script>
+</button></div></section></div></main><!-- ================= MOBILE NAV ================= --><!-- ================= MOBILE NAV ================= -->
+
+<nav class="bottom-nav">
+
+    <button class="bottom-btn active" data-page="dashboard">
+        <span>⌂</span>
+        Home
+    </button>
+
+    <button class="bottom-btn" data-page="deposit">
+        <span>↓</span>
+        Deposit
+    </button>
+
+    <button class="bottom-btn" data-page="withdraw">
+        <span>↑</span>
+        Withdraw
+    </button>
+
+    <button class="bottom-btn" data-page="reservation">
+        <span>◆</span>
+        Reserve
+    </button>
+
+    <button class="bottom-btn" data-page="history">
+        <span>▤</span>
+        History
+    </button>
+
+    <button class="bottom-btn" data-page="referral">
+        <span>♧</span>
+        Referral
+    </button>
+
+    <button class="bottom-btn" data-page="profile">
+        <span>●</span>
+        Profile
+    </button>
+
+</nav></section><script>
 
 /* =====================================================
 STATE
