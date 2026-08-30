@@ -581,7 +581,7 @@ input:focus,select:focus{
     line-height:1.6;
 }
 
--badge{
+.badge{
     display:inline-block;
     background:#fef3c7;
     color:#92400e;
@@ -810,7 +810,21 @@ th{
 
     .bottom-btn.active{
         color:var(--primary);
-    }
+    }.bottom-nav{
+    pointer-events:auto;
+    z-index:9999;
+}
+
+.bottom-btn{
+    pointer-events:auto;
+    position:relative;
+    z-index:10000;
+}
+
+.mobile-header{
+    pointer-events:auto;
+    z-index:9998;
+}
 }
 
 @media(max-width:520px){
@@ -1109,7 +1123,7 @@ required>
 Submit Withdrawal Request
 </button></form></div></section><!-- ================= RESERVATION ================= --><section id="page-reservation" class="page"><div class="page-heading"><h1>Reservation</h1><p class="muted">
  reservation feature.
-</p></div><div class="reservation-hero"><span class="-badge">
+</p></div><div class="reservation-hero"><span class="badge"></span>
  SIMULATION
 </span><h2>Wallet Reservation</h2><p>
 This feature is a reservation only. It simulates a reward calculation and does not represent guaranteed real-world earnings.
@@ -2179,7 +2193,7 @@ $("reserveNow").addEventListener(
             showMessage(
                 $("reservationMessage"),
                 data.message ||
-                 reservation completed.",
+"Reservation completed.",
                 "success"
             );
 
