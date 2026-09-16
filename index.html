@@ -2695,6 +2695,25 @@ tbody tr:hover td{
 
 }
 
+/* ================= MOBILE REGISTRATION EMAIL FIX ================= */
+
+@media(max-width:550px){
+
+    #registerForm input[type="email"],
+    #registerForm input[name="email"],
+    #registerForm #registerEmail{
+        width:100% !important;
+        min-width:0 !important;
+        min-height:48px !important;
+        height:48px !important;
+        padding:12px 13px !important;
+        font-size:13px !important;
+        line-height:1.4 !important;
+        box-sizing:border-box !important;
+        display:block !important;
+    }
+
+}
 </style>
 </head>
 
@@ -4578,7 +4597,9 @@ async function loadNFTs(){
             data.nfts ||
             data.data ||
             data;
-
+nfts = Array.isArray(nfts)
+    ? nfts.sort((a, b) => Number(a.price || 0) - Number(b.price || 0))
+    : nfts;
 
         if(!Array.isArray(nfts)){
             nfts = [];
