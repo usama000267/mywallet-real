@@ -6,6 +6,7 @@
 <title>Meta NFT</title>
 
 <style>
+    
 *{
     box-sizing:border-box;
     margin:0;
@@ -2694,27 +2695,8 @@ tbody tr:hover td{
     }
 
 }
-
 /* ================= MOBILE REGISTRATION EMAIL FIX ================= */
 
-@media(max-width:550px){
-
-    #registerForm input[type="email"],
-    #registerForm input[name="email"],
-    #registerForm #registerEmail{
-        width:100% !important;
-        min-width:0 !important;
-        min-height:48px !important;
-        height:48px !important;
-        padding:12px 13px !important;
-        font-size:13px !important;
-        line-height:1.4 !important;
-        box-sizing:border-box !important;
-        display:block !important;
-    }
-
-}
-/* aapka existing CSS */
 @media(max-width:550px){
 
     .register-email-row{
@@ -2730,8 +2712,8 @@ tbody tr:hover td{
         min-width:0 !important;
         height:48px !important;
         min-height:48px !important;
+        padding:12px !important;
         box-sizing:border-box !important;
-        padding:12px 12px !important;
         font-size:12px !important;
     }
 
@@ -2749,9 +2731,127 @@ tbody tr:hover td{
         box-sizing:border-box !important;
     }
 
+}/* ================= MOBILE LOGIN REGISTER FIX ================= */
+
+@media (max-width: 550px){
+
+    #authPage{
+        width:100% !important;
+        min-height:100vh !important;
+        padding:16px 12px 30px !important;
+        box-sizing:border-box !important;
+        overflow-x:hidden !important;
+    }
+
+    #authPage .auth-box{
+        width:100% !important;
+        max-width:none !important;
+        margin:0 auto !important;
+        padding:20px 16px !important;
+        box-sizing:border-box !important;
+        border-radius:18px !important;
+    }
+
+    #authPage .auth-logo{
+        justify-content:center !important;
+        margin-bottom:18px !important;
+    }
+
+    #authPage .auth-title{
+        text-align:center !important;
+        font-size:23px !important;
+        line-height:1.25 !important;
+    }
+
+    #authPage .auth-subtitle{
+        text-align:center !important;
+        font-size:13px !important;
+        margin-bottom:20px !important;
+    }
+
+    #authPage .form-group{
+        width:100% !important;
+        margin-bottom:14px !important;
+        box-sizing:border-box !important;
+    }
+
+    #authPage label{
+        display:block !important;
+        margin-bottom:6px !important;
+        font-size:13px !important;
+    }
+
+    #authPage input{
+        width:100% !important;
+        max-width:100% !important;
+        height:48px !important;
+        min-height:48px !important;
+        box-sizing:border-box !important;
+        font-size:14px !important;
+        padding:11px 13px !important;
+    }
+
+    #authPage .btn-full{
+        width:100% !important;
+        height:48px !important;
+        min-height:48px !important;
+        box-sizing:border-box !important;
+    }
+
+    #authPage .auth-switch{
+        width:100% !important;
+        text-align:center !important;
+        margin-top:16px !important;
+        font-size:13px !important;
+        line-height:1.5 !important;
+    }
+
+    #authPage .register-email-row{
+        display:flex !important;
+        width:100% !important;
+        gap:7px !important;
+        box-sizing:border-box !important;
+    }
+
+    #authPage .register-email-row #registerEmail{
+        flex:1 1 auto !important;
+        width:auto !important;
+        min-width:0 !important;
+        height:48px !important;
+        box-sizing:border-box !important;
+    }
+
+    #authPage .register-email-row #registerSendOtpBtn{
+        flex:0 0 88px !important;
+        width:88px !important;
+        min-width:88px !important;
+        max-width:88px !important;
+        height:48px !important;
+        min-height:48px !important;
+        padding:5px !important;
+        font-size:10px !important;
+        box-sizing:border-box !important;
+    }
+
 }
+
+/* ================= AUTH CSS TEST ================= */
+
+@media (max-width:550px){
+
+    #authPage{
+        background:#eaf7ff !important;
+    }
+
+    #authPage .auth-box{
+        background:#ffffff !important;
+        border:3px solid #6c4df6 !important;
+    }
+
+}
+
 </style>
-</style>
+
 </head>
 
 <body>
@@ -2858,15 +2958,7 @@ tbody tr:hover td{
 
         <button
             type="button"
-            id="registerSendOtpBtn"
-            class="btn btn-primary register-otp-btn"
-            onclick="sendRegistrationOTP()"
-        >
-            Send OTP
-        </button>
-
-    </div>
-</div>
+            
             id="registerSendOtpBtn"
             class="btn btn-primary"
             onclick="sendRegistrationOTP()"
@@ -3152,7 +3244,7 @@ tbody tr:hover td{
 
 </div>
 
-></div>
+</div>
 
             <!-- ================= MARKETPLACE ================= -->
 
@@ -3799,7 +3891,7 @@ tbody tr:hover td{
 
         </div>
 
-    </div>
+    
 
 </div>
 
@@ -3940,25 +4032,37 @@ async function api(url,options={}){
 /* =========================================================
    AUTH UI
 ========================================================= */
-
 function showRegister(){
 
-    document.getElementById("loginFormBox").classList.add("hidden");
-    document.getElementById("registerFormBox").classList.remove("hidden");
+    const loginBox = document.getElementById("loginFormBox");
+    const registerBox = document.getElementById("registerFormBox");
+
+    if(loginBox){
+        loginBox.classList.add("hidden");
+    }
+
+    if(registerBox){
+        registerBox.classList.remove("hidden");
+    }
 
     clearMessage("loginMessage");
 }
 
-
 function showLogin(){
 
-    document.getElementById("registerFormBox").classList.add("hidden");
-    document.getElementById("loginFormBox").classList.remove("hidden");
+    const loginBox = document.getElementById("loginFormBox");
+    const registerBox = document.getElementById("registerFormBox");
+
+    if(loginBox){
+        loginBox.classList.remove("hidden");
+    }
+
+    if(registerBox){
+        registerBox.classList.add("hidden");
+    }
 
     clearMessage("registerMessage");
 }
-
-
 function showMessage(id,message,type="error"){
 
     const el = document.getElementById(id);
