@@ -2717,6 +2717,41 @@ tbody tr:hover td{
 /* aapka existing CSS */
 
 </style>
+@media(max-width:550px){
+
+    .register-email-row{
+        display:flex !important;
+        width:100% !important;
+        gap:8px !important;
+        align-items:stretch !important;
+    }
+
+    .register-email-row #registerEmail{
+        flex:1 1 auto !important;
+        width:auto !important;
+        min-width:0 !important;
+        height:48px !important;
+        min-height:48px !important;
+        box-sizing:border-box !important;
+        padding:12px 12px !important;
+        font-size:12px !important;
+    }
+
+    .register-email-row #registerSendOtpBtn{
+        flex:0 0 88px !important;
+        width:88px !important;
+        min-width:88px !important;
+        max-width:88px !important;
+        height:48px !important;
+        min-height:48px !important;
+        padding:8px 5px !important;
+        font-size:10px !important;
+        border-radius:11px !important;
+        white-space:nowrap !important;
+        box-sizing:border-box !important;
+    }
+
+}
 </style>
 </head>
 
@@ -2809,14 +2844,10 @@ tbody tr:hover td{
                     >
                 </div>
 
-              <div class="form-group">
+            <div class="form-group register-email-group">
     <label>Email</label>
 
-    <div style="
-        display:flex;
-        gap:10px;
-        align-items:stretch;
-    ">
+    <div class="register-email-row">
 
         <input
             id="registerEmail"
@@ -2824,11 +2855,19 @@ tbody tr:hover td{
             type="email"
             placeholder="Enter email"
             required
-            style="flex:1;"
         >
 
         <button
             type="button"
+            id="registerSendOtpBtn"
+            class="btn btn-primary register-otp-btn"
+            onclick="sendRegistrationOTP()"
+        >
+            Send OTP
+        </button>
+
+    </div>
+</div>
             id="registerSendOtpBtn"
             class="btn btn-primary"
             onclick="sendRegistrationOTP()"
