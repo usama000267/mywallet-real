@@ -2557,7 +2557,14 @@ function renderNFTs(items){
                                 }
 
                             </button>
+<button
+    class="btn btn-primary"
+    type="button"
+    onclick="replaceNFTImage(${Number(nft.id)})">
 
+    Replace Image
+
+</button>
                         </div>
 
                     </div>
@@ -2641,7 +2648,85 @@ async function toggleNFT(id,status){
     }
 }
 
+async function replaceNFTImage(id){
 
+    const input =
+        document.createElement("input");
+
+    input.type = "file";
+    input.accept =
+        "image/jpeg,image/png,image/webp,image/gif";
+
+    input.onchange = async function(){
+
+        const file =
+            input.files[0];
+
+        if(!file) return;
+
+        if(file.size > 5 * 1024 * 1024){
+
+            showMessage(
+                "Image must be 5MB or smaller.",
+                "error"
+            );
+
+            return;
+        }
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "image",
+            file
+        );
+
+        try{
+
+            const response =
+                await fetch(
+                    "/api/admin/nfts/" +
+                    id +
+                    "/image",
+                    {
+                        method:"POST",
+                        body:formData
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.message ||
+                    "Unable to replace NFT image."
+                );
+
+            }
+
+            showMessage(
+                "NFT image replaced successfully."
+            );
+
+            await loadAll();
+
+        }catch(error){
+
+            showMessage(
+                error.message,
+                "error"
+            );
+
+        }
+
+    };
+
+    input.click();
+
+}
 /* =====================================================
    USER NFT HOLDINGS
 ===================================================== */

@@ -10,11 +10,17 @@ const { Resend } = require("resend");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const multer = require("multer");
+const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const db = require("./database");
 const app = express();
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 const PORT = Number(process.env.PORT || 3000);
 const resend = process.env.RESEND_API_KEY
     ? new Resend(process.env.RESEND_API_KEY)
@@ -242,63 +248,11 @@ if(!fs.existsSync(uploadDirectory)){
         }
     );
 
-}
-const nftStorage =
-    multer.diskStorage({
-
-        destination:function(
-            req,
-            file,
-            cb
-        ){
-
-            cb(
-                null,
-                uploadDirectory
-            );
-
-        },
-
-        filename:function(
-            req,
-            file,
-            cb
-        ){
-
-            const extension =
-                path
-                    .extname(
-                        file.originalname
-                    )
-                    .toLowerCase();
-
-
-            const safeName =
-                "nft-" +
-                Date.now() +
-                "-" +
-                Math.round(
-                    Math.random() *
-                    1000000
-                ) +
-                extension;
-
-
-            cb(
-                null,
-                safeName
-            );
-
-        }
-
-    });
-
-
-const nftUpload =
+}const nftUpload =
     multer({
 
         storage:
-            nftStorage,
+            multer.memoryStorage(),
 
         limits:{
             fileSize:
@@ -317,7 +271,6 @@ const nftUpload =
                 "image/webp",
                 "image/gif"
             ];
-
 
             if(
                 allowed.includes(
@@ -343,6 +296,8 @@ const nftUpload =
         }
 
     });
+
+
 
 /* =====================================================
    CONFIG
@@ -4802,9 +4757,39 @@ app.post(
             }
 
 
-            const imageUrl =
-                "/uploads/" +
-                req.file.filename;
+            const uploadResult =
+    await new Promise(
+        (resolve, reject) => {
+
+            const uploadStream =
+                cloudinary.uploader.upload_stream(
+                    {
+                        folder: "meta-nft"
+                    },
+                    (
+                        error,
+                        result
+                    ) => {
+
+                        if (error) {
+                            reject(error);
+                        } else {
+                            resolve(result);
+                        }
+
+                    }
+                );
+
+            uploadStream.end(
+                req.file.buffer
+            );
+
+        }
+    );
+
+
+const imageUrl =
+    uploadResult.secure_url;
 
 
             const result =
@@ -4890,6 +4875,143 @@ app.post(
                     "Unable to create NFT."
             });
         }
+    }
+);
+/* =====================================================
+   ADMIN REPLACE NFT IMAGE
+===================================================== */
+
+app.post(
+    "/api/admin/nfts/:id/image",
+    requireAdmin,
+    nftUpload.single("image"),
+    async (req, res) => {
+
+        try {
+
+            const nftId =
+                Number(req.params.id);
+
+            if (
+                !Number.isInteger(nftId) ||
+                nftId <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid NFT ID."
+                });
+            }
+
+
+            if (!req.file) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "NFT image is required."
+                });
+            }
+
+
+            const uploadResult =
+                await new Promise(
+                    (resolve, reject) => {
+
+                        const uploadStream =
+                            cloudinary.uploader.upload_stream(
+                                {
+                                    folder:
+                                        "meta-nft"
+                                },
+                                (
+                                    error,
+                                    result
+                                ) => {
+
+                                    if (error) {
+                                        reject(error);
+                                    } else {
+                                        resolve(result);
+                                    }
+
+                                }
+                            );
+
+
+                        uploadStream.end(
+                            req.file.buffer
+                        );
+
+                    }
+                );
+
+
+            const imageUrl =
+                uploadResult.secure_url;
+
+
+            const result =
+                await db.query(
+                    `
+                    UPDATE nfts
+                    SET image_url = $1
+                    WHERE id = $2
+                    RETURNING id, name, image_url
+                    `,
+                    [
+                        imageUrl,
+                        nftId
+                    ]
+                );
+
+
+            if (
+                result.rows.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "NFT not found."
+                });
+            }
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "NFT image replaced successfully.",
+
+                nft:
+                    result.rows[0]
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "REPLACE NFT IMAGE ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    error.message ||
+                    "Unable to replace NFT image."
+
+            });
+
+        }
+
     }
 );
 
