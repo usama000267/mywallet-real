@@ -1388,26 +1388,45 @@ tbody tr:hover td{
         grid-template-columns:repeat(2,1fr);
     }
 }
-
 /* ================= PROFESSIONAL MOBILE MENU ================= */
 
 .mobile-menu{
-    position:fixed;
-    inset:0;
-    display:block;
-    z-index:99998;
+    position:fixed !important;
+    inset:0 !important;
+    width:100% !important;
+    height:100% !important;
+    display:none !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    z-index:2147483647 !important;
 }
 
 .mobile-menu.show{
     display:block !important;
-    visibility:visible !important;
-    opacity:1 !important;
 }
-.mobile-menu:not(.show){
-    display:none !important;
-    visibility:hidden !important;
-    opacity:0 !important;
+
+.mobile-menu-overlay{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.48);
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
 }
+
+.mobile-menu-panel{
+    position:absolute;
+    top:0;
+    right:0;
+    width:min(88%,380px);
+    height:100%;
+    min-height:100vh;
+    z-index:2;
+    pointer-events:auto;
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+}
+
 .mobile-menu-overlay{
     position:absolute;
     inset:0;
@@ -1416,6 +1435,8 @@ tbody tr:hover td{
     -webkit-backdrop-filter:blur(5px);
 }
 .mobile-menu-panel{
+    z-index:1000000 !important;
+pointer-events:auto !important;
     position:absolute;
     top:0;
     right:0;
@@ -2034,6 +2055,12 @@ tbody tr:hover td{
         line-height:1.45;
     }
 
+}
+.mobile-more-btn{
+    position:relative !important;
+    z-index:999999 !important;
+    pointer-events:auto !important;
+    cursor:pointer !important;
 }
 /* ================= MOBILE NFT PREMIUM ================= */
 
@@ -2849,7 +2876,15 @@ tbody tr:hover td{
     }
 
 }
-
+#mobileMenu.show,
+#mobileMenu[style] {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2147483647 !important;
+}
 </style>
 
 </head>
@@ -3785,18 +3820,15 @@ tbody tr:hover td{
     <button data-page="withdraw">
         <span>↗</span>
         <small>Withdraw</small>
-    </button>
-
-    <button
-        type="button"
-        class="mobile-more-btn"
-        id="mobileMenuButton"
-        onclick="openMobileMenu()"
-    >
-        <span>☰</span>
-        <small>Menu</small>
-    </button>
-
+  <button
+    type="button"
+    id="mobileMenuButton"
+    style="position:relative; z-index:999999999; pointer-events:auto;"
+    onclick="openMobileMenu()"
+>
+    ☰
+    <small>Menu</small>
+</button>
 </div>
 <!-- ================= BUY MODAL ================= -->
 
@@ -3888,10 +3920,9 @@ tbody tr:hover td{
             >
                 Sell NFT
             </button>
+</div>
 
-        </div>
-
-    
+    </div>
 
 </div>
 
@@ -4548,7 +4579,6 @@ const pageTitles = {
 
 
 function openPage(page){
-closeMobileMenu();
     document.querySelectorAll(".page").forEach(el=>{
         el.classList.remove("active");
     });
@@ -6507,30 +6537,33 @@ document.getElementById("mobileNav")
     );
 
 }
-function openTelegramSupport(){
-    window.open(
-        "https://t.me/MetaNFTSupport",
-        "_blank"
-    );
-}
 function openMobileMenu(){
+
     const menu = document.getElementById("mobileMenu");
 
-    if(menu){
-        menu.classList.add("show");
-        menu.style.display = "block";
-        menu.style.visibility = "visible";
-        menu.style.opacity = "1";
+    if (!menu) {
+        alert("mobileMenu not found");
+        return;
     }
+
+    menu.classList.add("show");
+    menu.style.display = "block";
+    menu.style.position = "fixed";
+    menu.style.top = "0";
+    menu.style.left = "0";
+    menu.style.right = "0";
+    menu.style.bottom = "0";
+    menu.style.width = "100%";
+    menu.style.height = "100%";
+    menu.style.visibility = "visible";
+    menu.style.opacity = "1";
+    menu.style.zIndex = "99999999";
+
+    document.body.style.overflow = "hidden";
+
 }
+
 function closeMobileMenu(){
-    const menu = document.getElementById("mobileMenu");
-
-    if(menu){
-        menu.classList.remove("show");
-    }
-}
-document.addEventListener("click", function(event){
 
     const menu = document.getElementById("mobileMenu");
 
@@ -6538,29 +6571,23 @@ document.addEventListener("click", function(event){
         return;
     }
 
-    const clickedButton =
-        event.target.closest(".mobile-menu-items button");
+    menu.classList.remove("show");
 
-    if(clickedButton){
-        closeMobileMenu();
-    }
+    menu.style.setProperty(
+        "display",
+        "none",
+        "important"
+    );
 
-});
-document.addEventListener("DOMContentLoaded", function(){
+    document.body.style.overflow = "";
 
-    const mobileMenuButton =
-        document.getElementById("mobileMenuButton");
-
-    if(mobileMenuButton){
-
-        mobileMenuButton.addEventListener(
-            "click",
-            openMobileMenu
-        );
-
-    }
-
-});
+}
+function openTelegramSupport(){
+    window.open(
+        "https://t.me/MetaNFTSupport",
+        "_blank"
+    );
+}
 /* =========================================================
    INITIAL SESSION CHECK
 ========================================================= */
@@ -6847,33 +6874,26 @@ function startRegistrationOtpTimer(){
             1000
         );
 }
-</script>
-
-<!-- ================= MOBILE MENU ================= -->
+</script><!-- ================= MOBILE MENU ================= -->
 
 <div id="mobileMenu" class="mobile-menu">
 
-    <div class="mobile-menu-overlay" onclick="openMobileMenu()"></div>
+    <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
 
     <div class="mobile-menu-panel">
 
-        <div class="mobile-menu-header">
-            <div>
-                <strong>Meta NFT</strong>
-                <span>Account Menu</span>
-            </div>
+       <div class="mobile-menu-header">
+    <div>
+        <strong>Meta NFT</strong>
+        <span>Account Menu</span>
+    </div>
 
-            <button
-                type="button"
-                onclick="closeMobileMenu()"
-            >
-                ×
-            </button>
-        </div>
+    <button type="button" onclick="closeMobileMenu()">×</button>
+</div>
 
         <div class="mobile-menu-items">
 
-            <button onclick="openPage('sell'); openMobileMenu();">
+            <button type="button" onclick="openPage('sell'); closeMobileMenu();">
                 <span>↗</span>
                 <div>
                     <strong>Sell NFT</strong>
@@ -6881,15 +6901,15 @@ function startRegistrationOtpTimer(){
                 </div>
             </button>
 
-      <button onclick="openPage('deposit'); openMobileMenu();">
-    <span>↓</span>
-    <div>
-        <strong>Deposit</strong>
-        <small>Deposit USDT to your account</small>
-    </div>
-</button>
+            <button type="button" onclick="openPage('deposit'); closeMobileMenu();">
+                <span>↓</span>
+                <div>
+                    <strong>Deposit</strong>
+                    <small>Deposit USDT to your account</small>
+                </div>
+            </button>
 
-            <button onclick="openPage('history'); openMobileMenu();">
+            <button type="button" onclick="openPage('history'); closeMobileMenu();">
                 <span>◷</span>
                 <div>
                     <strong>History</strong>
@@ -6897,7 +6917,7 @@ function startRegistrationOtpTimer(){
                 </div>
             </button>
 
-            <button onclick="openPage('referral'); openMobileMenu();">
+            <button type="button" onclick="openPage('referral'); closeMobileMenu();">
                 <span>♧</span>
                 <div>
                     <strong>Referral</strong>
@@ -6905,7 +6925,7 @@ function startRegistrationOtpTimer(){
                 </div>
             </button>
 
-            <button onclick="openPage('profile'); openMobileMenu();">
+            <button type="button" onclick="openPage('profile'); closeMobileMenu();">
                 <span>●</span>
                 <div>
                     <strong>Profile</strong>
@@ -6913,7 +6933,7 @@ function startRegistrationOtpTimer(){
                 </div>
             </button>
 
-            <button onclick="openTelegramSupport(); openMobileMenu();">
+            <button type="button" onclick="openTelegramSupport(); closeMobileMenu();">
                 <span>💬</span>
                 <div>
                     <strong>Customer Support</strong>
@@ -6924,12 +6944,13 @@ function startRegistrationOtpTimer(){
         </div>
 
         <div class="mobile-menu-footer">
-            <button onclick="logout()">
-                <span>↪</span>
-                Logout
-            </button>
-        </div>
 
+    <button type="button" onclick="closeMobileMenu(); logout()">
+        <span>↪</span>
+        Logout
+    </button>
+
+</div>
     </div>
 
 </div>
