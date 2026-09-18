@@ -10,17 +10,11 @@ const { Resend } = require("resend");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const multer = require("multer");
-const { v2: cloudinary } = require("cloudinary");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const db = require("./database");
 const app = express();
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
 const PORT = Number(process.env.PORT || 3000);
 const resend = process.env.RESEND_API_KEY
     ? new Resend(process.env.RESEND_API_KEY)
@@ -173,7 +167,7 @@ async function sendEmailOTP({
             : "confirm your Meta NFT withdrawal";
 
     await resend.emails.send({
-        from: "Meta NFT <support@metanft.work.gd>",
+        from: "Meta NFT <onboarding@resend.dev>",
         to: [cleanEmail],
         subject: "Meta NFT Verification Code",
         html: `
@@ -248,11 +242,63 @@ if(!fs.existsSync(uploadDirectory)){
         }
     );
 
-}const nftUpload =
+}
+const nftStorage =
+    multer.diskStorage({
+
+        destination:function(
+            req,
+            file,
+            cb
+        ){
+
+            cb(
+                null,
+                uploadDirectory
+            );
+
+        },
+
+        filename:function(
+            req,
+            file,
+            cb
+        ){
+
+            const extension =
+                path
+                    .extname(
+                        file.originalname
+                    )
+                    .toLowerCase();
+
+
+            const safeName =
+                "nft-" +
+                Date.now() +
+                "-" +
+                Math.round(
+                    Math.random() *
+                    1000000
+                ) +
+                extension;
+
+
+            cb(
+                null,
+                safeName
+            );
+
+        }
+
+    });
+
+
+const nftUpload =
     multer({
 
         storage:
-            multer.memoryStorage(),
+            nftStorage,
 
         limits:{
             fileSize:
@@ -271,6 +317,7 @@ if(!fs.existsSync(uploadDirectory)){
                 "image/webp",
                 "image/gif"
             ];
+
 
             if(
                 allowed.includes(
@@ -296,8 +343,6 @@ if(!fs.existsSync(uploadDirectory)){
         }
 
     });
-
-
 
 /* =====================================================
    CONFIG
@@ -2811,183 +2856,12 @@ app.post(
 /* =====================================================
    WITHDRAWAL
 ===================================================== */
-/* =========================================================
-   SEND WITHDRAWAL OTP
-========================================================= */
 
-app.post(
-    "/api/withdrawals/send-otp",
-    requireAllowedUser,
-    async (req, res) => {
-
-        try {
-
-            await db.ready;
-
-            const userResult =
-                await db.query(
-                    `
-                    SELECT
-                        id,
-                        email
-                    FROM users
-                    WHERE id = $1
-                    AND is_blocked = FALSE
-                    LIMIT 1
-                    `,
-                    [req.session.userId]
-                );
-
-
-            if(
-                userResult.rows.length === 0
-            ){
-
-                return res.status(403).json({
-                    success:false,
-                    message:
-                        "User account is unavailable."
-                });
-
-            }
-
-
-            const user =
-                userResult.rows[0];
-
-
-            await sendEmailOTP({
-                email:user.email,
-                purpose:"withdrawal",
-                userId:user.id
-            });
-
-
-            return res.json({
-                success:true,
-                message:
-                    "Withdrawal OTP has been sent to your email."
-            });
-
-
-        }catch(error){
-
-            console.error(
-                "SEND WITHDRAWAL OTP ERROR:",
-                error
-            );
-
-
-            return res.status(400).json({
-                success:false,
-                message:
-                    error.message ||
-                    "Unable to send withdrawal OTP."
-            });
-
-        }
-
-    }
-);
 app.post(
     "/api/withdrawals",
     requireAllowedUser,
     async (req, res) => {
-const otp =
-                String(
-                    req.body.otp || ""
-                ).trim();
 
-            if(!/^\d{6}$/.test(otp)){
-                return res.status(400).json({
-                    success:false,
-                    message:
-                        "Enter the 6-digit withdrawal OTP."
-                });
-            }
-
-            const otpResult =
-                await db.query(
-                    `
-                    SELECT
-                        id,
-                        otp_hash,
-                        expires_at,
-                        attempts
-                    FROM email_otps
-                    WHERE user_id = $1
-                    AND purpose = 'withdrawal'
-                    AND used = FALSE
-                    ORDER BY created_at DESC
-                    LIMIT 1
-                    `,
-                    [req.session.userId]
-                );
-
-            if(otpResult.rows.length === 0){
-                return res.status(400).json({
-                    success:false,
-                    message:
-                        "Withdrawal OTP not found. Please request a new OTP."
-                });
-            }
-
-            const otpRecord =
-                otpResult.rows[0];
-
-            if(
-                new Date(otpRecord.expires_at).getTime()
-                < Date.now()
-            ){
-                return res.status(400).json({
-                    success:false,
-                    message:
-                        "Withdrawal OTP has expired. Please request a new OTP."
-                });
-            }
-
-            if(
-                Number(otpRecord.attempts || 0) >= 5
-            ){
-                return res.status(400).json({
-                    success:false,
-                    message:
-                        "Too many incorrect OTP attempts. Please request a new OTP."
-                });
-            }
-
-            const submittedOtpHash =
-                hashOTP(otp);
-
-            if(
-                submittedOtpHash !==
-                otpRecord.otp_hash
-            ){
-
-                await db.query(
-                    `
-                    UPDATE email_otps
-                    SET attempts = attempts + 1
-                    WHERE id = $1
-                    `,
-                    [otpRecord.id]
-                );
-
-                return res.status(400).json({
-                    success:false,
-                    message:
-                        "Incorrect withdrawal OTP."
-                });
-            }
-
-            await db.query(
-                `
-                UPDATE email_otps
-                SET used = TRUE
-                WHERE id = $1
-                `,
-                [otpRecord.id]
-            );
         const client =
             await db.pool.connect();
 
@@ -3260,56 +3134,21 @@ app.get(
                     `,
                     [req.session.userId]
                 );
-const nftPurchases =
-    await db.query(
-        `
-        SELECT
-            user_nfts.id,
-            nfts.name AS nft_name,
-            user_nfts.purchase_price AS amount,
-            user_nfts.purchase_date AS created_at
-        FROM user_nfts
-        INNER JOIN nfts
-            ON nfts.id = user_nfts.nft_id
-        WHERE user_nfts.user_id = $1
-        ORDER BY user_nfts.id DESC
-        `,
-        [req.session.userId]
-    );
 
-const nftSales =
-    await db.query(
-        `
-        SELECT
-            nft_sales.id,
-            nfts.name AS nft_name,
-            nft_sales.sale_price AS amount,
-            nft_sales.profit_amount,
-            nft_sales.created_at
-        FROM nft_sales
-        INNER JOIN user_nfts
-            ON user_nfts.id = nft_sales.user_nft_id
-        INNER JOIN nfts
-            ON nfts.id = user_nfts.nft_id
-        WHERE nft_sales.user_id = $1
-        ORDER BY nft_sales.id DESC
-        `,
-        [req.session.userId]
-    );
 
-           res.json({
-    success: true,
-    deposits:
-        deposits.rows,
-    withdrawals:
-        withdrawals.rows,
-    earnings:
-        earnings.rows,
-    nftPurchases:
-        nftPurchases.rows,
-    nftSales:
-        nftSales.rows
-});
+            res.json({
+                success: true,
+
+                deposits:
+                    deposits.rows,
+
+                withdrawals:
+                    withdrawals.rows,
+
+                earnings:
+                    earnings.rows
+            });
+
         } catch (error) {
 
             console.error(
@@ -3379,14 +3218,13 @@ app.get(
                 await db.query(
                     `
                     SELECT
-    id,
-    name,
-    email,
-    balance,
-    created_at
-FROM users
-WHERE referred_by = $1
-ORDER BY id DESC
+                        id,
+                        name,
+                        email,
+                        created_at
+                    FROM users
+                    WHERE referred_by = $1
+                    ORDER BY id DESC
                     `,
                     [req.session.userId]
                 );
@@ -4758,39 +4596,9 @@ app.post(
             }
 
 
-            const uploadResult =
-    await new Promise(
-        (resolve, reject) => {
-
-            const uploadStream =
-                cloudinary.uploader.upload_stream(
-                    {
-                        folder: "meta-nft"
-                    },
-                    (
-                        error,
-                        result
-                    ) => {
-
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(result);
-                        }
-
-                    }
-                );
-
-            uploadStream.end(
-                req.file.buffer
-            );
-
-        }
-    );
-
-
-const imageUrl =
-    uploadResult.secure_url;
+            const imageUrl =
+                "/uploads/" +
+                req.file.filename;
 
 
             const result =
@@ -4876,143 +4684,6 @@ const imageUrl =
                     "Unable to create NFT."
             });
         }
-    }
-);
-/* =====================================================
-   ADMIN REPLACE NFT IMAGE
-===================================================== */
-
-app.post(
-    "/api/admin/nfts/:id/image",
-    requireAdmin,
-    nftUpload.single("image"),
-    async (req, res) => {
-
-        try {
-
-            const nftId =
-                Number(req.params.id);
-
-            if (
-                !Number.isInteger(nftId) ||
-                nftId <= 0
-            ) {
-
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        "Invalid NFT ID."
-                });
-            }
-
-
-            if (!req.file) {
-
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        "NFT image is required."
-                });
-            }
-
-
-            const uploadResult =
-                await new Promise(
-                    (resolve, reject) => {
-
-                        const uploadStream =
-                            cloudinary.uploader.upload_stream(
-                                {
-                                    folder:
-                                        "meta-nft"
-                                },
-                                (
-                                    error,
-                                    result
-                                ) => {
-
-                                    if (error) {
-                                        reject(error);
-                                    } else {
-                                        resolve(result);
-                                    }
-
-                                }
-                            );
-
-
-                        uploadStream.end(
-                            req.file.buffer
-                        );
-
-                    }
-                );
-
-
-            const imageUrl =
-                uploadResult.secure_url;
-
-
-            const result =
-                await db.query(
-                    `
-                    UPDATE nfts
-                    SET image_url = $1
-                    WHERE id = $2
-                    RETURNING id, name, image_url
-                    `,
-                    [
-                        imageUrl,
-                        nftId
-                    ]
-                );
-
-
-            if (
-                result.rows.length === 0
-            ) {
-
-                return res.status(404).json({
-                    success: false,
-                    message:
-                        "NFT not found."
-                });
-            }
-
-
-            res.json({
-
-                success: true,
-
-                message:
-                    "NFT image replaced successfully.",
-
-                nft:
-                    result.rows[0]
-
-            });
-
-
-        } catch (error) {
-
-            console.error(
-                "REPLACE NFT IMAGE ERROR:",
-                error
-            );
-
-
-            res.status(500).json({
-
-                success: false,
-
-                message:
-                    error.message ||
-                    "Unable to replace NFT image."
-
-            });
-
-        }
-
     }
 );
 

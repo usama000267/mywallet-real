@@ -1,0 +1,3054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Meta NFT — Admin Panel</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Inter,Arial,sans-serif;
+}
+
+body{
+    background:#f7f8fc;
+    color:#171725;
+}
+
+.hidden{
+    display:none!important;
+}
+
+button{
+    border:0;
+    cursor:pointer;
+    font-weight:700;
+}
+
+input,
+textarea,
+select{
+    width:100%;
+    padding:12px 14px;
+    border:1px solid #dfe3ec;
+    border-radius:10px;
+    outline:none;
+    background:#fff;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+    border-color:#7357ff;
+    box-shadow:0 0 0 3px rgba(115,87,255,.10);
+}
+
+textarea{
+    min-height:90px;
+    resize:vertical;
+}
+
+.topbar{
+    position:sticky;
+    top:0;
+    z-index:50;
+    background:#fff;
+    border-bottom:1px solid #eceef5;
+    padding:15px 22px;
+}
+
+.topbar-inner{
+    max-width:1400px;
+    margin:auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.brand-logo{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#7357ff,#18c8ff);
+    color:#fff;
+    font-weight:900;
+}
+
+.brand-text{
+    font-size:21px;
+    font-weight:900;
+}
+
+.brand-sub{
+    font-size:11px;
+    color:#858a9b;
+}
+
+.logout{
+    background:#171725;
+    color:#fff;
+    padding:10px 16px;
+    border-radius:10px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+    padding:24px 18px 50px;
+}
+
+.card{
+    background:#fff;
+    border:1px solid #eceef5;
+    border-radius:18px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 8px 30px rgba(25,25,50,.045);
+}
+
+.login-card{
+    max-width:430px;
+    margin:90px auto;
+}
+
+.login-logo{
+    width:64px;
+    height:64px;
+    margin:auto auto 18px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:22px;
+    font-weight:900;
+    background:linear-gradient(135deg,#7357ff,#18c8ff);
+}
+
+.login-title{
+    text-align:center;
+    font-size:28px;
+    margin-bottom:7px;
+}
+
+.login-sub{
+    text-align:center;
+    color:#777d90;
+    margin-bottom:25px;
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+label{
+    display:block;
+    font-weight:700;
+    margin-bottom:7px;
+    font-size:14px;
+}
+
+.primary{
+    width:100%;
+    padding:13px;
+    border-radius:11px;
+    color:#fff;
+    background:linear-gradient(135deg,#7357ff,#5b45ed);
+}
+
+.message{
+    display:none;
+    padding:12px 14px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-size:14px;
+}
+
+.message.show{
+    display:block;
+}
+
+.success{
+    background:#e9fbf0;
+    color:#147a3e;
+}
+
+.error{
+    background:#fff0f0;
+    color:#b42318;
+}
+
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.stat{
+    background:#fff;
+    border:1px solid #eceef5;
+    border-radius:17px;
+    padding:19px;
+    box-shadow:0 8px 30px rgba(25,25,50,.045);
+}
+
+.stat-icon{
+    width:42px;
+    height:42px;
+    border-radius:12px;
+    background:#f0edff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:19px;
+    margin-bottom:13px;
+}
+
+.stat-title{
+    color:#777d90;
+    font-size:13px;
+}
+
+.stat-value{
+    margin-top:5px;
+    font-size:26px;
+    font-weight:900;
+}
+
+.section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:16px;
+}
+
+.section-title{
+    font-size:21px;
+}
+
+.section-sub{
+    color:#7c8293;
+    font-size:13px;
+    margin-top:4px;
+}
+
+.refresh{
+    background:#f0edff;
+    color:#5c45dd;
+    padding:9px 13px;
+    border-radius:9px;
+}
+
+.table-wrap{
+    overflow:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:800px;
+}
+
+th,
+td{
+    padding:13px 11px;
+    text-align:left;
+    border-bottom:1px solid #edf0f5;
+    white-space:nowrap;
+    font-size:13px;
+}
+
+th{
+    color:#666d80;
+    font-size:12px;
+    background:#fafbfe;
+}
+
+.status{
+    display:inline-flex;
+    align-items:center;
+    padding:5px 9px;
+    border-radius:30px;
+    font-size:11px;
+    font-weight:800;
+    text-transform:capitalize;
+}
+
+.status.pending{
+    background:#fff5d9;
+    color:#966400;
+}
+
+.status.approved,
+.status.completed,
+.status.active,
+.status.owned{
+    background:#e9fbf0;
+    color:#147a3e;
+}
+
+.status.rejected,
+.status.blocked,
+.status.sold,
+.status.inactive{
+    background:#fff0f0;
+    color:#b42318;
+}
+
+.actions{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    padding:8px 11px;
+    border-radius:8px;
+    font-size:12px;
+}
+
+.btn-green{
+    background:#16a34a;
+    color:#fff;
+}
+
+.btn-red{
+    background:#dc2626;
+    color:#fff;
+}
+
+.btn-purple{
+    background:#7357ff;
+    color:#fff;
+}
+
+.btn-dark{
+    background:#171725;
+    color:#fff;
+}
+
+.btn-gray{
+    background:#eef0f5;
+    color:#343848;
+}
+
+.nft-form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+}
+
+.full{
+    grid-column:1/-1;
+}
+
+.nft-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+}
+
+.nft-card{
+    border:1px solid #e9ebf2;
+    border-radius:15px;
+    overflow:hidden;
+    background:#fff;
+}
+
+.nft-image{
+    height:180px;
+    background:linear-gradient(135deg,#eeeaff,#e4faff);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#777;
+    overflow:hidden;
+}
+
+.nft-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.nft-body{
+    padding:15px;
+}
+
+.nft-name{
+    font-weight:900;
+    font-size:16px;
+}
+
+.nft-price{
+    margin-top:8px;
+    font-size:20px;
+    font-weight:900;
+}
+
+.nft-description{
+    margin-top:7px;
+    color:#777d90;
+    font-size:12px;
+    min-height:32px;
+}
+
+.nft-actions{
+    margin-top:13px;
+    display:flex;
+    gap:7px;
+}
+
+.config-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.network-box{
+    border:1px solid #e7e9f0;
+    border-radius:14px;
+    padding:16px;
+    background:#fafbfe;
+}
+
+.network-title{
+    font-weight:900;
+    margin-bottom:9px;
+}
+
+.address{
+    background:#fff;
+    border:1px solid #e4e6ed;
+    border-radius:9px;
+    padding:10px;
+    word-break:break-all;
+    font-size:12px;
+    color:#555b6d;
+}
+
+.empty{
+    text-align:center;
+    padding:30px 15px;
+    color:#858a9b;
+}
+
+.warning{
+    padding:12px 14px;
+    background:#fff8e6;
+    color:#805d00;
+    border-radius:10px;
+    margin-top:12px;
+    font-size:13px;
+}
+
+@media(max-width:1050px){
+    .dashboard-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .nft-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:700px){
+    .container{
+        padding:17px 12px 40px;
+    }
+
+    .dashboard-grid{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .nft-grid,
+    .nft-form-grid,
+    .config-grid{
+        grid-template-columns:1fr;
+    }
+
+    .topbar-inner{
+        align-items:flex-start;
+    }
+
+    .brand-text{
+        font-size:18px;
+    }
+
+    .stat-value{
+        font-size:21px;
+    }
+}
+
+@media(max-width:480px){
+    .dashboard-grid{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ==================================================
+     LOGIN
+================================================== -->
+
+<section id="loginSection">
+
+    <div class="card login-card">
+
+        <div class="login-logo">MN</div>
+
+        <h1 class="login-title">
+            Meta NFT
+        </h1>
+
+        <p class="login-sub">
+            Secure Administrator Panel
+        </p>
+
+        <div id="loginMessage" class="message"></div>
+
+        <form id="loginForm">
+
+            <div class="field">
+                <label>Admin Email</label>
+                <input
+                    id="email"
+                    type="email"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="field">
+                <label>Admin Password</label>
+                <input
+                    id="password"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button class="primary" type="submit">
+                Login to Admin Panel
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     ADMIN APP
+================================================== -->
+
+<div id="adminApp" class="hidden">
+
+<header class="topbar">
+
+    <div class="topbar-inner">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                MN
+            </div>
+
+            <div>
+                <div class="brand-text">
+                    Meta NFT
+                </div>
+
+                <div class="brand-sub">
+                    Administrator Panel
+                </div>
+            </div>
+
+        </div>
+
+        <button
+            id="logoutBtn"
+            class="logout">
+            Logout
+        </button>
+
+    </div>
+
+</header>
+
+
+<main class="container">
+
+    <div id="globalMessage" class="message"></div>
+
+
+    <!-- ==================================================
+         SUMMARY
+    ================================================== -->
+
+    <div class="dashboard-grid">
+
+        <div class="stat">
+
+            <div class="stat-icon">👥</div>
+
+            <div class="stat-title">
+                Total Users
+            </div>
+
+            <div
+                id="totalUsers"
+                class="stat-value">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">💰</div>
+
+            <div class="stat-title">
+                Pending Deposits
+            </div>
+
+            <div
+                id="pendingDeposits"
+                class="stat-value">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">💸</div>
+
+            <div class="stat-title">
+                Pending Withdrawals
+            </div>
+
+            <div
+                id="pendingWithdrawals"
+                class="stat-value">
+                0
+            </div>
+
+        </div>
+
+
+        <div class="stat">
+
+            <div class="stat-icon">🖼️</div>
+
+            <div class="stat-title">
+                Active NFTs
+            </div>
+
+            <div
+                id="activeNFTs"
+                class="stat-value">
+                0
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         BALANCE SUMMARY
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    Platform Overview
+                </h2>
+
+                <p class="section-sub">
+                    Meta NFT account and marketplace overview
+                </p>
+            </div>
+
+            <button
+                class="refresh"
+                onclick="loadAll()">
+                ↻ Refresh
+            </button>
+
+        </div>
+
+        <div class="dashboard-grid">
+
+            <div class="stat">
+                <div class="stat-title">
+                    Total User Balance
+                </div>
+
+                <div
+                    id="totalBalance"
+                    class="stat-value">
+                    $0.00
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-title">
+                    Total Earnings
+                </div>
+
+                <div
+                    id="totalEarnings"
+                    class="stat-value">
+                    $0.00
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-title">
+                    NFT Sales
+                </div>
+
+                <div
+                    id="nftSales"
+                    class="stat-value">
+                    0
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-title">
+                    Owned NFTs
+                </div>
+
+                <div
+                    id="ownedNFTs"
+                    class="stat-value">
+                    0
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         NFT MANAGEMENT
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    NFT Management
+                </h2>
+
+                <p class="section-sub">
+                    Create and manage NFTs shown in the marketplace.
+                </p>
+            </div>
+
+        </div>
+
+
+        <form id="nftForm">
+
+            <div class="nft-form-grid">
+
+                <div class="field">
+
+                    <label>
+                        NFT Name
+                    </label>
+
+                    <input
+                        id="nftName"
+                        placeholder="Example: Golden NFT"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Price (USD)
+                    </label>
+
+                    <input
+                        id="nftPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="50"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field full">
+
+                    <label>
+                        Description
+                    </label>
+
+                    <textarea
+                        id="nftDescription"
+                        placeholder="Describe this NFT..."
+                    ></textarea>
+
+                </div>
+
+
+               <div class="field">
+
+    <label>
+        NFT Image
+    </label>
+
+    <input
+        id="nftImage"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+    >
+
+    <small style="
+        display:block;
+        margin-top:7px;
+        color:#777d90;
+        font-size:12px;
+    ">
+        JPG, PNG, WEBP or GIF — maximum 5MB
+    </small>
+
+</div>
+
+
+                <div class="field">
+
+                    <label>
+                        Profit % Display
+                    </label>
+
+                    <input
+                        id="nftProfit"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value="0"
+                    >
+
+                </div>
+
+
+                <div class="full">
+
+                    <button
+                        class="primary"
+                        type="submit">
+                        + Create NFT
+                    </button>
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+<!-- ==================================================
+     USDT NETWORK CONFIGURATION
+================================================== -->
+
+<div class="card">
+
+    <div class="section-head">
+
+        <div>
+            <h2 class="section-title">
+                USDT Network Configuration
+            </h2>
+
+            <p class="section-sub">
+                Admin can change the USDT deposit addresses
+                used by users.
+            </p>
+        </div>
+
+    </div>
+
+    <div class="nft-form-grid">
+
+        <div class="field">
+
+            <label>
+                USDT BEP20 Deposit Address
+            </label>
+
+            <input
+                id="bep20AddressInput"
+                type="text"
+                placeholder="Enter BEP20 USDT address"
+            >
+
+        </div>
+
+        <div class="field">
+
+            <label>
+                USDT TRC20 Deposit Address
+            </label>
+
+            <input
+                id="trc20AddressInput"
+                type="text"
+                placeholder="Enter TRC20 USDT address"
+            >
+
+        </div>
+
+        <div class="full">
+
+            <button
+                id="saveAddressesBtn"
+                class="primary"
+                type="button">
+
+                Save USDT Addresses
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="warning" style="margin-top:15px;">
+
+        ⚠️ Make sure the wallet addresses are correct
+        before saving. Users will see these addresses
+        on the Deposit page.
+
+    </div>
+
+</div>
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    Marketplace NFTs
+                </h2>
+
+                <p class="section-sub">
+                    Active and inactive NFTs.
+                </p>
+            </div>
+
+        </div>
+
+        <div
+            id="nftGrid"
+            class="nft-grid">
+
+            <div class="empty">
+                Loading NFTs...
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         DEPOSITS
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    Deposit Requests
+                </h2>
+
+                <p class="section-sub">
+                    Approve or reject user USDT deposits.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Amount</th>
+                        <th>Network</th>
+                        <th>TX Hash</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="depositTable">
+
+                    <tr>
+                        <td colspan="8">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         WITHDRAWALS
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    Withdrawal Requests
+                </h2>
+
+                <p class="section-sub">
+                    Review user withdrawal requests.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Amount</th>
+                        <th>Network</th>
+                        <th>Wallet</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="withdrawTable">
+
+                    <tr>
+                        <td colspan="8">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         USERS
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    User Management
+                </h2>
+
+                <p class="section-sub">
+                    Block or allow user accounts.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="usersTable">
+
+                    <tr>
+                        <td colspan="7">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         USER NFTs
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    User NFT Holdings
+                </h2>
+
+                <p class="section-sub">
+                    View purchased and sold NFTs.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>NFT</th>
+                        <th>Purchase</th>
+                        <th>Sale Price</th>
+                        <th>Profit/Loss</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody id="userNFTTable">
+
+                    <tr>
+                        <td colspan="8">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         EARNINGS
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    Earnings
+                </h2>
+
+                <p class="section-sub">
+                    NFT profits and referral bonuses.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="table-wrap">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody id="earningsTable">
+
+                    <tr>
+                        <td colspan="6">
+                            Loading...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         NETWORK CONFIG
+    ================================================== -->
+
+    <div class="card">
+
+        <div class="section-head">
+
+            <div>
+                <h2 class="section-title">
+                    USDT Network Configuration
+                </h2>
+
+                <p class="section-sub">
+                    Current deposit network addresses configured on the server.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="config-grid">
+
+            <div class="network-box">
+
+                <div class="network-title">
+                    USDT BEP20
+                </div>
+
+                <div
+                    id="bep20Address"
+                    class="address">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="network-box">
+
+                <div class="network-title">
+                    USDT TRC20
+                </div>
+
+                <div
+                    id="trc20Address"
+                    class="address">
+                    Loading...
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="warning">
+            Network wallet addresses are controlled through the server
+            environment configuration. This panel displays the currently
+            configured addresses; it does not overwrite your .env values.
+        </div>
+
+    </div>
+
+</main>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+const $ = id => document.getElementById(id);
+
+
+function escapeHtml(value){
+
+    return String(value ?? "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+
+function money(value){
+
+    return "$" + Number(value || 0).toFixed(2);
+}
+
+
+function statusHtml(status){
+
+    const safe = escapeHtml(status || "unknown");
+
+    return `
+        <span class="status ${safe}">
+            ${safe}
+        </span>
+    `;
+}
+
+
+function showMessage(text,type="success"){
+
+    const el = $("globalMessage");
+
+    el.textContent = text;
+
+    el.className =
+        "message show " + type;
+
+    setTimeout(() => {
+
+        el.classList.remove("show");
+
+    },4000);
+}
+
+
+async function getJSON(url){
+
+    const response =
+        await fetch(url);
+
+    let data = {};
+
+    try{
+        data = await response.json();
+    }catch{
+        data = {};
+    }
+
+    if(response.status === 401){
+
+        location.reload();
+
+        throw new Error(
+            "Admin session expired."
+        );
+    }
+
+    if(!response.ok){
+
+        throw new Error(
+            data.message ||
+            "Request failed."
+        );
+    }
+
+    return data;
+}
+
+
+/* =====================================================
+   LOGIN
+===================================================== */
+
+$("loginForm").addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+        const email =
+            $("email").value.trim();
+
+        const password =
+            $("password").value;
+
+        const message =
+            $("loginMessage");
+
+        try{
+
+            const response =
+                await fetch(
+                    "/api/admin/login",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:JSON.stringify({
+                            email,
+                            password
+                        })
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if(!response.ok){
+
+                message.textContent =
+                    data.message ||
+                    "Invalid admin credentials.";
+
+                message.className =
+                    "message show error";
+
+                return;
+            }
+
+            $("loginSection")
+                .classList
+                .add("hidden");
+
+            $("adminApp")
+                .classList
+                .remove("hidden");
+
+            await loadAll();
+
+        }catch(error){
+
+            console.error(error);
+
+            message.textContent =
+                "Unable to connect to server.";
+
+            message.className =
+                "message show error";
+        }
+    }
+);
+
+
+/* =====================================================
+   LOGOUT
+===================================================== */
+
+$("logoutBtn").onclick =
+async function(){
+
+    try{
+
+        await fetch(
+            "/api/admin/logout",
+            {
+                method:"POST"
+            }
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+    }
+
+    location.reload();
+};
+
+
+/* =====================================================
+   LOAD EVERYTHING
+===================================================== */
+
+async function loadAll(){
+
+    try{
+
+        const [
+            users,
+            deposits,
+            withdrawals,
+            nfts,
+            userNFTs,
+            earnings,
+            summary,
+            config
+        ] = await Promise.all([
+
+            getJSON("/api/admin/users"),
+
+            getJSON("/api/admin/deposits"),
+
+            getJSON("/api/admin/withdrawals"),
+
+            getJSON("/api/admin/nfts"),
+
+            getJSON("/api/admin/user-nfts"),
+
+            getJSON("/api/admin/earnings"),
+
+            getJSON("/api/admin/summary"),
+
+            getJSON("/api/config")
+
+        ]);
+
+
+        const userItems =
+            users.users || [];
+
+        const depositItems =
+            deposits.deposits || [];
+
+        const withdrawalItems =
+            withdrawals.withdrawals || [];
+
+        const nftItems =
+            nfts.nfts || [];
+
+        const userNFTItems =
+            userNFTs.userNfts ||
+            userNFTs.userNFTs ||
+            [];
+
+        const earningItems =
+            earnings.earnings || [];
+
+        renderUsers(userItems);
+
+        renderDeposits(depositItems);
+
+        renderWithdrawals(withdrawalItems);
+
+        renderNFTs(nftItems);
+
+        renderUserNFTs(userNFTItems);
+
+        renderEarnings(earningItems);
+
+        renderSummary(
+            summary,
+            userItems,
+            depositItems,
+            withdrawalItems,
+            nftItems,
+            userNFTItems
+        );
+
+        renderConfig(config);
+await loadPaymentAddresses();
+    }catch(error){
+
+        console.error(
+            "ADMIN LOAD ERROR:",
+            error
+        );
+
+        showMessage(
+            error.message ||
+            "Unable to load admin data.",
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   SUMMARY
+===================================================== */
+
+function renderSummary(
+    summary,
+    users,
+    deposits,
+    withdrawals,
+    nfts,
+    userNFTs
+){
+
+    $("totalUsers").textContent =
+        users.length;
+
+    $("pendingDeposits").textContent =
+        deposits.filter(
+            x => x.status === "pending"
+        ).length;
+
+    $("pendingWithdrawals").textContent =
+        withdrawals.filter(
+            x => x.status === "pending"
+        ).length;
+
+    $("activeNFTs").textContent =
+        nfts.filter(
+            x => x.status === "active"
+        ).length;
+
+
+    const totalBalance =
+        users.reduce(
+            (sum,user) =>
+                sum + Number(
+                    user.balance || 0
+                ),
+            0
+        );
+
+    $("totalBalance").textContent =
+        money(
+            summary.totalBalance ??
+            totalBalance
+        );
+
+
+    $("totalEarnings").textContent =
+        money(
+            summary.totalEarnings ??
+            0
+        );
+
+
+    const owned =
+        userNFTs.filter(
+            x =>
+                String(
+                    x.status || ""
+                ).toLowerCase() === "owned"
+        ).length;
+
+    $("ownedNFTs").textContent =
+        summary.ownedNFTs ??
+        owned;
+
+
+    $("nftSales").textContent =
+        summary.nftSales ??
+        userNFTs.filter(
+            x =>
+                String(
+                    x.status || ""
+                ).toLowerCase() === "sold"
+        ).length;
+}
+
+
+/* =====================================================
+   USERS
+===================================================== */
+
+function renderUsers(items){
+
+    const table =
+        $("usersTable");
+
+    if(!items.length){
+
+        table.innerHTML =
+            `<tr>
+                <td colspan="7" class="empty">
+                    No users found.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(user => {
+
+            const blocked =
+                Boolean(user.is_blocked);
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${escapeHtml(user.id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(user.name)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(user.email)}
+                    </td>
+
+                    <td>
+                        ${money(user.balance)}
+                    </td>
+
+                    <td>
+                        ${
+                            blocked
+                            ? statusHtml("blocked")
+                            : statusHtml("active")
+                        }
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            user.created_at || "-"
+                        )}
+                    </td>
+
+                    <td>
+
+                        <div class="actions">
+
+                            ${
+                                blocked
+                                ? `
+                                    <button
+                                        class="btn btn-green"
+                                        onclick="allowUser(${Number(user.id)})">
+                                        Allow
+                                    </button>
+                                `
+                                : `
+                                    <button
+                                        class="btn btn-red"
+                                        onclick="blockUser(${Number(user.id)})">
+                                        Block
+                                    </button>
+                                `
+                            }
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+}
+
+
+/* =====================================================
+   BLOCK USER
+===================================================== */
+
+async function blockUser(id){
+
+    if(
+        !confirm(
+            "Block this user account?"
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/users/" +
+                id +
+                "/block",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Unable to block user."
+            );
+        }
+
+        showMessage(
+            "User blocked successfully."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   ALLOW USER
+===================================================== */
+
+async function allowUser(id){
+
+    if(
+        !confirm(
+            "Allow this user account?"
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/users/" +
+                id +
+                "/allow",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Unable to allow user."
+            );
+        }
+
+        showMessage(
+            "User allowed successfully."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   DEPOSITS
+===================================================== */
+
+function renderDeposits(items){
+
+    const table =
+        $("depositTable");
+
+    if(!items.length){
+
+        table.innerHTML =
+            `<tr>
+                <td colspan="8" class="empty">
+                    No deposit requests.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(item => {
+
+            let action = "-";
+
+            if(item.status === "pending"){
+
+                action = `
+
+                    <div class="actions">
+
+                        <button
+                            class="btn btn-green"
+                            onclick="approveDeposit(${Number(item.id)})">
+                            Approve
+                        </button>
+
+                        <button
+                            class="btn btn-red"
+                            onclick="rejectDeposit(${Number(item.id)})">
+                            Reject
+                        </button>
+
+                    </div>
+
+                `;
+            }
+
+            return `
+
+                <tr>
+
+                    <td>${escapeHtml(item.id)}</td>
+
+                    <td>${escapeHtml(item.name)}</td>
+
+                    <td>${escapeHtml(item.email)}</td>
+
+                    <td>
+                        ${money(item.amount)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.network)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.tx_hash || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${statusHtml(item.status)}
+                    </td>
+
+                    <td>
+                        ${action}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+}
+
+
+/* =====================================================
+   APPROVE DEPOSIT
+===================================================== */
+
+async function approveDeposit(id){
+
+    if(
+        !confirm(
+            "Approve this deposit? The amount will be credited to the user's balance."
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/deposits/" +
+                id +
+                "/approve",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Deposit approval failed."
+            );
+        }
+
+        showMessage(
+            "Deposit approved successfully."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   REJECT DEPOSIT
+===================================================== */
+
+async function rejectDeposit(id){
+
+    if(
+        !confirm(
+            "Reject this deposit?"
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/deposits/" +
+                id +
+                "/reject",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Deposit rejection failed."
+            );
+        }
+
+        showMessage(
+            "Deposit rejected."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   WITHDRAWALS
+===================================================== */
+
+function renderWithdrawals(items){
+
+    const table =
+        $("withdrawTable");
+
+    if(!items.length){
+
+        table.innerHTML =
+            `<tr>
+                <td colspan="8" class="empty">
+                    No withdrawal requests.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(item => {
+
+            let action = "-";
+
+            if(item.status === "pending"){
+
+                action = `
+
+                    <div class="actions">
+
+                        <button
+                            class="btn btn-green"
+                            onclick="approveWithdrawal(${Number(item.id)})">
+                            Approve
+                        </button>
+
+                        <button
+                            class="btn btn-red"
+                            onclick="rejectWithdrawal(${Number(item.id)})">
+                            Reject
+                        </button>
+
+                    </div>
+
+                `;
+            }
+
+
+            return `
+
+                <tr>
+
+                    <td>${escapeHtml(item.id)}</td>
+
+                    <td>${escapeHtml(item.name)}</td>
+
+                    <td>${escapeHtml(item.email)}</td>
+
+                    <td>
+                        ${money(item.amount)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.network)}
+                    </td>
+
+                    <td style="max-width:220px;white-space:normal;word-break:break-all">
+                        ${escapeHtml(
+                            item.wallet_address || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${statusHtml(item.status)}
+                    </td>
+
+                    <td>
+                        ${action}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+}
+
+
+/* =====================================================
+   APPROVE WITHDRAWAL
+===================================================== */
+
+async function approveWithdrawal(id){
+
+    if(
+        !confirm(
+            "Approve this withdrawal?"
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/withdrawals/" +
+                id +
+                "/approve",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Withdrawal approval failed."
+            );
+        }
+
+        showMessage(
+            "Withdrawal approved."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   REJECT WITHDRAWAL
+===================================================== */
+
+async function rejectWithdrawal(id){
+
+    if(
+        !confirm(
+            "Reject this withdrawal? The reserved amount will be returned to the user's balance."
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/withdrawals/" +
+                id +
+                "/reject",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Withdrawal rejection failed."
+            );
+        }
+
+        showMessage(
+            "Withdrawal rejected and amount returned."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+/* =====================================================
+   NFT CREATE
+===================================================== */
+
+$("nftForm").addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+
+        const name =
+            $("nftName").value.trim();
+
+
+        const description =
+            $("nftDescription").value.trim();
+
+
+        const imageFile =
+            $("nftImage").files[0];
+
+
+        const price =
+            Number(
+                $("nftPrice").value
+            );
+
+
+        const profit_percent =
+            Number(
+                $("nftProfit").value || 0
+            );
+
+
+        if(!name){
+
+            showMessage(
+                "NFT name is required.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if(
+            !Number.isFinite(price) ||
+            price < 0
+        ){
+
+            showMessage(
+                "Enter a valid NFT price.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if(
+            !Number.isFinite(profit_percent) ||
+            profit_percent < 0
+        ){
+
+            showMessage(
+                "Enter a valid profit percentage.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if(!imageFile){
+
+            showMessage(
+                "Please select an NFT image.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if(
+            imageFile.size >
+            5 * 1024 * 1024
+        ){
+
+            showMessage(
+                "Image must be 5MB or smaller.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "name",
+            name
+        );
+
+
+        formData.append(
+            "description",
+            description
+        );
+
+
+        formData.append(
+            "price",
+            price
+        );
+
+
+        formData.append(
+            "profit_percent",
+            profit_percent
+        );
+
+
+        formData.append(
+            "image",
+            imageFile
+        );
+
+
+        try{
+
+            const response =
+                await fetch(
+                    "/api/admin/nfts",
+                    {
+                        method:"POST",
+
+                        body:formData
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.message ||
+                    "Unable to create NFT."
+                );
+            }
+
+
+            showMessage(
+                "NFT created successfully."
+            );
+
+
+            $("nftForm").reset();
+
+
+            $("nftProfit").value =
+                "0";
+
+
+            await loadAll();
+
+
+        }catch(error){
+
+            console.error(
+                "NFT CREATE ERROR:",
+                error
+            );
+
+
+            showMessage(
+                error.message ||
+                "Unable to create NFT.",
+                "error"
+            );
+        }
+    }
+);
+
+/* =====================================================
+   NFT RENDER
+===================================================== */
+
+function renderNFTs(items){
+
+    const grid =
+        $("nftGrid");
+
+
+    if(!items.length){
+
+        grid.innerHTML =
+            `<div class="empty">
+                No NFTs have been created yet.
+            </div>`;
+
+        return;
+    }
+
+
+    grid.innerHTML =
+        items.map(nft => {
+
+            const image =
+                nft.image_url
+                ? `
+                    <img
+                        src="${escapeHtml(nft.image_url)}"
+                        alt="${escapeHtml(nft.name)}"
+                        onerror="this.style.display='none';this.parentElement.innerHTML='🖼️ NFT';"
+                    >
+                `
+                : "🖼️ NFT";
+
+
+            const isActive =
+                nft.status === "active";
+
+
+            return `
+
+                <div class="nft-card">
+
+                    <div class="nft-image">
+                        ${image}
+                    </div>
+
+                    <div class="nft-body">
+
+                        <div class="nft-name">
+                            ${escapeHtml(nft.name)}
+                        </div>
+
+                        <div class="nft-price">
+                            ${money(nft.price)}
+                        </div>
+
+                        <div class="nft-description">
+                            ${escapeHtml(
+                                nft.description ||
+                                "No description"
+                            )}
+                        </div>
+
+                        <div style="margin-top:10px">
+                            ${statusHtml(nft.status)}
+                        </div>
+
+                        <div class="nft-actions">
+
+                            <button
+                                class="btn ${
+                                    isActive
+                                    ? "btn-red"
+                                    : "btn-green"
+                                }"
+                                onclick="toggleNFT(
+                                    ${Number(nft.id)},
+                                    '${isActive ? "inactive" : "active"}'
+                                )">
+
+                                ${
+                                    isActive
+                                    ? "Deactivate"
+                                    : "Activate"
+                                }
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+}
+
+
+/* =====================================================
+   NFT STATUS
+===================================================== */
+
+async function toggleNFT(id,status){
+
+    const action =
+        status === "active"
+        ? "activate"
+        : "deactivate";
+
+    if(
+        !confirm(
+            "Are you sure you want to " +
+            action +
+            " this NFT?"
+        )
+    ) return;
+
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/nfts/" +
+                id +
+                "/status",
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+                        status
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Unable to change NFT status."
+            );
+        }
+
+
+        showMessage(
+            "NFT status updated."
+        );
+
+        await loadAll();
+
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
+
+
+/* =====================================================
+   USER NFT HOLDINGS
+===================================================== */
+
+function renderUserNFTs(items){
+
+    const table =
+        $("userNFTTable");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            `<tr>
+                <td colspan="8" class="empty">
+                    No user NFT records.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(item => {
+
+            const profit =
+                Number(
+                    item.profit_amount || 0
+                );
+
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${escapeHtml(item.id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.email ||
+                            item.user_email ||
+                            item.name ||
+                            "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.nft_name ||
+                            item.name ||
+                            "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${money(
+                            item.purchase_price
+                        )}
+                    </td>
+
+                    <td>
+                        ${
+                            item.sale_price === null ||
+                            item.sale_price === undefined
+                            ? "-"
+                            : money(item.sale_price)
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            item.profit_amount === null ||
+                            item.profit_amount === undefined
+                            ? "-"
+                            : money(profit)
+                        }
+                    </td>
+
+                    <td>
+                        ${statusHtml(item.status)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.purchase_date ||
+                            item.created_at ||
+                            "-"
+                        )}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+}
+
+
+/* =====================================================
+   EARNINGS
+===================================================== */
+
+function renderEarnings(items){
+
+    const table =
+        $("earningsTable");
+
+
+    if(!items.length){
+
+        table.innerHTML =
+            `<tr>
+                <td colspan="6" class="empty">
+                    No earnings recorded.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+
+    table.innerHTML =
+        items.map(item => `
+
+            <tr>
+
+                <td>
+                    ${escapeHtml(item.id)}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.email ||
+                        item.user_email ||
+                        item.name ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.type
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.description ||
+                        "-"
+                    )}
+                </td>
+
+                <td>
+                    ${money(item.amount)}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        item.created_at ||
+                        "-"
+                    )}
+                </td>
+
+            </tr>
+
+        `).join("");
+}
+
+/* =====================================================
+   NETWORK CONFIG
+===================================================== */
+
+function renderConfig(config){
+
+    const bep20 =
+        config &&
+        config.networks &&
+        config.networks.bep20
+        ? config.networks.bep20.address
+        : "-";
+
+
+    const trc20 =
+        config &&
+        config.networks &&
+        config.networks.trc20
+        ? config.networks.trc20.address
+        : "-";
+
+
+    $("bep20Address").textContent =
+        bep20 || "-";
+
+    $("trc20Address").textContent =
+        trc20 || "-";
+
+
+    const bep20Input =
+        $("bep20AddressInput");
+
+    const trc20Input =
+        $("trc20AddressInput");
+
+
+    if(bep20Input){
+        bep20Input.value =
+            bep20 !== "-" ? bep20 : "";
+    }
+
+    if(trc20Input){
+        trc20Input.value =
+            trc20 !== "-" ? trc20 : "";
+    }
+}
+async function loadPaymentAddresses(){
+
+    try{
+
+        const data =
+            await getJSON(
+                "/api/admin/payment-addresses"
+            );
+
+        const bep20Input =
+            $("bep20AddressInput");
+
+        const trc20Input =
+            $("trc20AddressInput");
+
+        if(bep20Input){
+            bep20Input.value =
+                data.bep20 || "";
+        }
+
+        if(trc20Input){
+            trc20Input.value =
+                data.trc20 || "";
+        }
+
+    }catch(error){
+
+        console.error(
+            "PAYMENT ADDRESS LOAD ERROR:",
+            error
+        );
+    }
+}
+async function savePaymentAddresses(){
+
+    const bep20Input =
+        $("bep20AddressInput");
+
+    const trc20Input =
+        $("trc20AddressInput");
+
+    if(!bep20Input || !trc20Input){
+        showMessage(
+            "Payment address fields are not available.",
+            "error"
+        );
+        return;
+    }
+
+    const bep20 =
+        bep20Input.value.trim();
+
+    const trc20 =
+        trc20Input.value.trim();
+
+    if(!bep20){
+        showMessage(
+            "Enter BEP20 USDT address.",
+            "error"
+        );
+        return;
+    }
+
+    if(!trc20){
+        showMessage(
+            "Enter TRC20 USDT address.",
+            "error"
+        );
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/payment-addresses",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            bep20: bep20,
+                            trc20: trc20
+                        })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Unable to save addresses."
+            );
+        }
+
+        showMessage(
+            "USDT addresses updated successfully."
+        );
+
+        await loadPaymentAddresses();
+
+    }catch(error){
+
+        console.error(
+            "PAYMENT ADDRESS SAVE ERROR:",
+            error
+        );
+
+        showMessage(
+            error.message ||
+            "Unable to save addresses.",
+            "error"
+        );
+    }
+}
+const saveAddressesButton =
+    $("saveAddressesBtn");
+
+if(saveAddressesButton){
+
+    saveAddressesButton.addEventListener(
+        "click",
+        savePaymentAddresses
+    );
+
+}
+/* =====================================================
+   AUTO CHECK ADMIN SESSION
+===================================================== */
+
+async function checkAdminSession(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/me"
+            );
+
+
+        if(!response.ok){
+
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if(
+            data &&
+            (
+                data.success !== false ||
+                data.admin
+            )
+        ){
+
+            $("loginSection")
+                .classList
+                .add("hidden");
+
+            $("adminApp")
+                .classList
+                .remove("hidden");
+
+            await loadAll();
+        }
+
+
+    }catch(error){
+
+        console.log(
+            "No active admin session."
+        );
+    }
+}
+
+
+checkAdminSession();
+
+</script>
+
+</body>
+</html>
