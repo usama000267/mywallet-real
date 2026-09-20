@@ -758,8 +758,148 @@ th{
         </div>
 
     </div>
+<!-- ==================================================
+     BONUS
+================================================== -->
+
+<div class="card">
+
+    <div class="section-head">
+
+        <div>
+            <h2 class="section-title">
+                🎁 Send Bonus
+            </h2>
+
+            <p class="section-sub">
+                Send a bonus directly to a registered user.
+            </p>
+        </div>
+
+    </div>
 
 
+    <form id="bonusForm">
+
+        <div class="nft-form-grid">
+
+            <div class="field">
+
+                <label>
+                    User Email
+                </label>
+
+                <input
+                    id="bonusEmail"
+                    type="email"
+                    placeholder="user@example.com"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Bonus Amount (USDT)
+                </label>
+
+                <input
+                    id="bonusAmount"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="10"
+                    required
+                >
+
+            </div>
+
+
+            <div class="full">
+
+                <button
+                    class="primary"
+                    type="submit">
+                    🎁 Send Bonus
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+<!-- ==================================================
+     LANDING PAGE NFT MANAGEMENT
+================================================== -->
+
+<div class="card">
+
+    <div class="section-head">
+
+        <div>
+            <h2 class="section-title">
+                🖼️ Landing Page NFTs
+            </h2>
+
+            <p class="section-sub">
+                Manage NFT images displayed on the public landing page.
+            </p>
+        </div>
+
+    </div>
+
+    <form id="landingNFTForm">
+
+        <div class="nft-form-grid">
+
+            <div class="field">
+
+                <label>
+                    NFT Name
+                </label>
+
+                <input
+                    id="landingNFTName"
+                    placeholder="Example: Meta Gold"
+                    required
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    NFT Image
+                </label>
+
+                <input
+                    id="landingNFTImage"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    required
+                >
+
+            </div>
+
+            <div class="full">
+
+                <button
+                    class="primary"
+                    type="submit">
+                    🖼️ Add Landing NFT
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
     <!-- ==================================================
          NFT MANAGEMENT
     ================================================== -->
@@ -2467,7 +2607,79 @@ $("nftForm").addEventListener(
         }
     }
 );
+$("bonusForm").addEventListener(
+    "submit",
+    async function(event){
 
+        event.preventDefault();
+
+        try{
+
+            const email =
+                $("bonusEmail").value.trim();
+
+            const amount =
+                $("bonusAmount").value;
+
+
+            const response =
+                await fetch(
+                    "/api/admin/bonus",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:JSON.stringify({
+                            email:email,
+                            amount:amount
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.message ||
+                    "Unable to send bonus."
+                );
+            }
+
+
+            showMessage(
+                data.message ||
+                "Bonus sent successfully."
+            );
+
+
+            $("bonusForm").reset();
+
+
+        }catch(error){
+
+            console.error(
+                "BONUS ERROR:",
+                error
+            );
+
+
+            showMessage(
+                error.message ||
+                "Unable to send bonus.",
+                "error"
+            );
+        }
+
+    }
+);
 /* =====================================================
    NFT RENDER
 ===================================================== */
@@ -3132,6 +3344,149 @@ async function checkAdminSession(){
 
 
 checkAdminSession();
+/* =====================================================
+   AUTO CHECK ADMIN SESSION
+===================================================== */
+
+async function checkAdminSession(){
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/me"
+            );
+
+
+        if(!response.ok){
+
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if(
+            data &&
+            (
+                data.success !== false ||
+                data.admin
+            )
+        ){
+
+            $("loginSection")
+                .classList
+                .add("hidden");
+
+            $("adminApp")
+                .classList
+                .remove("hidden");
+
+            await loadAll();
+        }
+
+
+    }catch(error){
+
+        console.log(
+            "No active admin session."
+        );
+    }
+}
+
+
+checkAdminSession();
+$("landingNFTForm").addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+        try{
+
+            const name =
+                $("landingNFTName").value.trim();
+
+            const image =
+                $("landingNFTImage").files[0];
+
+            if(!name){
+
+                throw new Error(
+                    "Landing NFT name is required."
+                );
+            }
+
+            if(!image){
+
+                throw new Error(
+                    "Landing NFT image is required."
+                );
+            }
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "name",
+                name
+            );
+
+            formData.append(
+                "image",
+                image
+            );
+
+            const response =
+                await fetch(
+                    "/api/admin/landing-nfts",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.message ||
+                    "Unable to upload landing NFT."
+                );
+            }
+
+            showMessage(
+                data.message ||
+                "Landing NFT uploaded successfully."
+            );
+
+            $("landingNFTForm").reset();
+
+        }catch(error){
+
+            console.error(
+                "LANDING NFT ERROR:",
+                error
+            );
+
+            showMessage(
+                error.message ||
+                "Unable to upload landing NFT.",
+                "error"
+            );
+
+        }
+
+    }
+);
+</script>
+
+</body>
+</html>
 
 </script>
 

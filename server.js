@@ -534,7 +534,6 @@ async function requireAllowedUser(req, res, next) {
    read-only endpoints where necessary.
 */
 
-
 /* =====================================================
    HOME
 ===================================================== */
@@ -542,18 +541,9 @@ async function requireAllowedUser(req, res, next) {
 app.get("/", (req, res) => {
 
     res.sendFile(
-        __dirname + "/index.html"
+        __dirname + "/public/landing.html"
     );
 });
-
-
-app.get("/admin", (req, res) => {
-
-    res.sendFile(
-        __dirname + "/admin.html"
-    );
-});
-
 
 /* =====================================================
    HEALTH
@@ -1654,8 +1644,50 @@ app.get(
         }
     }
 );
+/* =====================================================
+   PUBLIC LANDING NFTS
+===================================================== */
+app.get(
+    "/api/landing-nfts",
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await db.query(
+                    `
+                    SELECT
+                        id,
+                        name,
+                        image_url
+                    FROM landing_nfts
+                    ORDER BY id DESC
+                    `
+                );
 
 
+            res.json({
+                success: true,
+                nfts: result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "LANDING NFT LIST ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to load landing NFTs."
+            });
+
+        }
+
+    }
+);
 /* =====================================================
    MY NFTs
 ===================================================== */
@@ -4879,6 +4911,127 @@ const imageUrl =
     }
 );
 /* =====================================================
+   ADMIN LANDING PAGE NFT UPLOAD
+===================================================== */
+
+app.post(
+    "/api/admin/landing-nfts",
+    requireAdmin,
+    nftUpload.single("image"),
+    async (req, res) => {
+
+        try {
+
+            const name =
+                String(
+                    req.body.name || ""
+                ).trim();
+
+            if (!name) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Landing NFT name is required."
+                });
+
+            }
+
+            if (!req.file) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Landing NFT image is required."
+                });
+
+            }
+
+            const uploadResult =
+                await new Promise(
+                    (resolve, reject) => {
+
+                        const uploadStream =
+                            cloudinary.uploader.upload_stream(
+                                {
+                                    folder:
+                                        "meta-nft/landing"
+                                },
+                                (
+                                    error,
+                                    result
+                                ) => {
+
+                                    if (error) {
+                                        reject(error);
+                                    } else {
+                                        resolve(result);
+                                    }
+
+                                }
+                            );
+
+                        uploadStream.end(
+                            req.file.buffer
+                        );
+
+                    }
+                );
+
+            const imageUrl =
+                uploadResult.secure_url;
+const result =
+    await db.query(
+        `
+        INSERT INTO landing_nfts
+        (
+            name,
+            image_url
+        )
+        VALUES
+        (
+            $1,
+            $2
+        )
+        RETURNING *
+        `,
+        [
+            name,
+            imageUrl
+        ]
+    );
+            res.status(201).json({
+
+                success: true,
+
+                message:
+                    "Landing NFT uploaded successfully.",
+
+               nft: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "LANDING NFT UPLOAD ERROR:",
+                error
+            );
+
+            res.status(500).json({
+
+                success: false,
+
+                message:
+                    error.message ||
+                    "Unable to upload landing NFT."
+
+            });
+
+        }
+
+    }
+);
+/* =====================================================
    ADMIN REPLACE NFT IMAGE
 ===================================================== */
 
@@ -5016,7 +5169,148 @@ app.post(
     }
 );
 
+/* =====================================================
+   ADMIN SEND BONUS
+===================================================== */
+app.post(
+    "/api/admin/bonus",
+    requireAdmin,
+    async (req, res) => {
 
+        try {
+
+            const email =
+                normalizeEmail(
+                    req.body.email
+                );
+
+            const amount =
+                Number(
+                    req.body.amount
+                );
+
+
+            if (!email) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "User email is required."
+                });
+
+            }
+
+
+            if (
+                !Number.isFinite(amount) ||
+                amount <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Bonus amount must be greater than zero."
+                });
+
+            }
+
+
+            const userResult =
+                await db.query(
+                    `
+                    SELECT
+                        id,
+                        email,
+                        balance
+                    FROM users
+                    WHERE LOWER(email) = LOWER($1)
+                    `,
+                    [email]
+                );
+
+
+            if (
+                userResult.rows.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "User not found with this email."
+                });
+
+            }
+
+
+            const user =
+                userResult.rows[0];
+
+
+            await db.query(
+                `
+                UPDATE users
+                SET balance = balance + $1
+                WHERE id = $2
+                `,
+                [
+                    amount,
+                    user.id
+                ]
+            );
+
+
+            await db.query(
+                `
+                INSERT INTO earnings
+                (
+                    user_id,
+                    amount,
+                    type,
+                    created_at
+                )
+                VALUES
+                (
+                    $1,
+                    $2,
+                    'activity_bonus',
+                    NOW()
+                )
+                `,
+                [
+                    user.id,
+                    amount
+                ]
+            );
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    `Bonus of $${amount.toFixed(2)} sent successfully.`
+
+            });
+
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN BONUS ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to send bonus."
+            });
+
+        }
+
+    }
+);
 /* =====================================================
    ADMIN PAYMENT ADDRESSES
 ===================================================== */

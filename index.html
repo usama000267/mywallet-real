@@ -3155,7 +3155,7 @@ pointer-events:auto !important;
             </button>
 <button
     class="nav-item"
-    onclick="openTelegramSupport()"
+    onclick="if(window.Tawk_API){window.Tawk_API.maximize();}"
 >
     <span class="nav-icon">💬</span>
     Customer Support
@@ -3206,7 +3206,22 @@ pointer-events:auto !important;
             <section id="page-dashboard" class="page active">
 
                 <div class="welcome-card">
-
+<button
+    type="button"
+    onclick="window.location.href='/landing.html'"
+    style="
+        margin-bottom:16px;
+        padding:10px 16px;
+        border:none;
+        border-radius:12px;
+        background:rgba(255,255,255,.18);
+        color:#fff;
+        font-weight:700;
+        cursor:pointer;
+    "
+>
+    ← Back to Home
+</button>
                     <h1>
                         Welcome back, <span id="welcomeName">User</span> 👋
                     </h1>
@@ -4209,7 +4224,17 @@ function clearMessage(id){
     el.textContent = "";
     el.className = "auth-message";
 }
+window.addEventListener("DOMContentLoaded", function(){
 
+    const params = new URLSearchParams(
+        window.location.search
+    );
+
+    if(params.get("register") === "1"){
+        showRegister();
+    }
+
+});
 /* =========================================================
    REGISTER
 ========================================================= */
@@ -7114,7 +7139,7 @@ function startRegistrationOtpTimer(){
                 </div>
             </button>
 
-            <button type="button" onclick="openTelegramSupport(); closeMobileMenu();">
+            <button type="button" onclick="if(window.Tawk_API){window.Tawk_API.maximize();} closeMobileMenu();">
                 <span>💬</span>
                 <div>
                     <strong>Customer Support</strong>
@@ -7135,5 +7160,24 @@ function startRegistrationOtpTimer(){
     </div>
 
 </div>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6aafb884a240be343f64af86/1k2v6hhia';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<script>
+Tawk_API = Tawk_API || {};
+
+Tawk_API.onLoad = function(){
+    Tawk_API.hideWidget();
+};
+</script>
 </body>
 </html>

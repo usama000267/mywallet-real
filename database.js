@@ -1,4 +1,4 @@
-const { Pool } = require("pg");
+ const { Pool } = require("pg");
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -293,7 +293,14 @@ await query(`
         CREATE INDEX IF NOT EXISTS idx_referral_bonuses_referrer_id
         ON referral_bonuses(referrer_id);
     `);
-
+await query(`
+        CREATE TABLE IF NOT EXISTS landing_nfts (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            image_url TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
 
     await query(`
         CREATE INDEX IF NOT EXISTS idx_nfts_status
