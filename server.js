@@ -3407,23 +3407,89 @@ app.get(
                 `${req.protocol}://${req.get("host")}/?ref=${encodeURIComponent(referralCode)}`;
 
 
-            const teamResult =
-                await db.query(
-                    `
-                    SELECT
-    id,
-    name,
-    email,
-    balance,
-    created_at
-FROM users
-WHERE referred_by = $1
-ORDER BY id DESC
-                    `,
-                    [req.session.userId]
-                );
+         const teamResult =
+    await db.query(
+        `
+        WITH RECURSIVE referral_team AS (
 
+            /* LEVEL 1 — DIRECT */
+            SELECT
+                id,
+                name,
+                email,
+                balance,
+                created_at,
+                1 AS level,
+                ARRAY[id] AS path
+            FROM users
+            WHERE referred_by = $1
 
+            UNION ALL
+
+            /* LEVEL 2+ — INDIRECT */
+            SELECT
+                u.id,
+                u.name,
+                u.email,
+                u.balance,
+                u.created_at,
+                rt.level + 1 AS level,
+                rt.path || u.id
+            FROM users u
+            INNER JOIN referral_team rt
+                ON u.referred_by = rt.id
+            WHERE NOT (u.id = ANY(rt.path))
+        ),
+
+        /* Count every member's complete downstream team */
+        descendants AS (
+
+            SELECT
+                rt.id AS root_id,
+                rt.id AS member_id
+            FROM referral_team rt
+
+            UNION ALL
+
+            SELECT
+                d.root_id,
+                u.id AS member_id
+            FROM descendants d
+            INNER JOIN users u
+                ON u.referred_by = d.member_id
+        ),
+
+        team_counts AS (
+
+            SELECT
+                root_id,
+                COUNT(*) - 1 AS total_team_count
+            FROM descendants
+            GROUP BY root_id
+        )
+
+        SELECT
+            rt.id,
+            rt.name,
+            rt.email,
+            rt.balance,
+            rt.created_at,
+            rt.level,
+            COALESCE(
+                tc.total_team_count,
+                0
+            ) AS total_team_count
+        FROM referral_team rt
+
+        LEFT JOIN team_counts tc
+            ON tc.root_id = rt.id
+
+        ORDER BY
+            rt.level ASC,
+            rt.id DESC
+        `,
+        [req.session.userId]
+    );
             const earningsResult =
                 await db.query(
                     `

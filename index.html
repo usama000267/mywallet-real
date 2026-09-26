@@ -6628,89 +6628,271 @@ async function loadReferral(){
                     </div>
 
 
-                    ${data.team.map(user => `
+                   ${data.team.map(user => {
+
+    const level =
+        Number(user.level || 1);
+
+    const teamCount =
+        Number(user.total_team_count || 0);
+
+    const isDirect =
+        level === 1;
+
+    return `
+
+        <div style="
+            position:relative;
+            margin:10px 0;
+            padding:16px;
+            border:1px solid ${
+                isDirect
+                    ? "rgba(124,58,237,.16)"
+                    : "rgba(6,182,212,.16)"
+            };
+            border-radius:18px;
+            background:
+                linear-gradient(
+                    135deg,
+                    ${
+                        isDirect
+                            ? "rgba(124,58,237,.055)"
+                            : "rgba(6,182,212,.045)"
+                    },
+                    #ffffff
+                );
+            box-shadow:
+                0 8px 25px rgba(15,23,42,.055);
+            overflow:hidden;
+        ">
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:12px;
+            ">
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:12px;
+                    min-width:0;
+                ">
+
+                    <div style="
+                        width:44px;
+                        height:44px;
+                        min-width:44px;
+                        border-radius:14px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        background:
+                            ${
+                                isDirect
+                                    ? "linear-gradient(135deg,#7c3aed,#a855f7)"
+                                    : "linear-gradient(135deg,#06b6d4,#3b82f6)"
+                            };
+                        color:#fff;
+                        font-size:20px;
+                        box-shadow:
+                            0 7px 18px
+                            ${
+                                isDirect
+                                    ? "rgba(124,58,237,.22)"
+                                    : "rgba(6,182,212,.20)"
+                            };
+                    ">
+                        ${isDirect ? "👤" : "👥"}
+                    </div>
+
+
+                    <div style="
+                        min-width:0;
+                    ">
 
                         <div style="
-                            display:grid;
-                            grid-template-columns:
-                                1.05fr 1.45fr .9fr .9fr;
-                            gap:8px;
+                            display:flex;
                             align-items:center;
-                            padding:13px 10px;
-                            border-bottom:1px solid #eeeeee;
-                            background:#ffffff;
-                            font-size:12px;
+                            gap:7px;
+                            flex-wrap:wrap;
                         ">
 
                             <div style="
-                                display:flex;
-                                align-items:center;
-                                gap:7px;
-                                min-width:0;
-                            ">
-
-                                <div style="
-                                    width:28px;
-                                    height:28px;
-                                    min-width:28px;
-                                    border-radius:50%;
-                                    display:flex;
-                                    align-items:center;
-                                    justify-content:center;
-                                    background:#f0f2ff;
-                                    font-size:13px;
-                                ">
-                                    👤
-                                </div>
-
-                                <div style="
-                                    font-weight:600;
-                                    color:#222;
-                                    overflow:hidden;
-                                    text-overflow:ellipsis;
-                                    white-space:nowrap;
-                                ">
-                                    ${user.name || "-"}
-                                </div>
-
-                            </div>
-
-
-                            <div style="
-                                color:#666;
+                                font-size:14px;
+                                font-weight:800;
+                                color:#17142b;
                                 overflow:hidden;
                                 text-overflow:ellipsis;
                                 white-space:nowrap;
+                                max-width:180px;
                             ">
-                                ${user.email || "-"}
+                                ${user.name || "-"}
                             </div>
 
 
-                            <div style="
-                                font-weight:700;
-                                color:#222;
-                                white-space:nowrap;
-                            ">
-                                ${money(user.balance || 0)}
-                            </div>
-
-
-                            <div style="
-                                color:#888;
-                                white-space:nowrap;
+                            <span style="
+                                display:inline-flex;
+                                align-items:center;
+                                padding:4px 8px;
+                                border-radius:999px;
+                                font-size:10px;
+                                font-weight:800;
+                                letter-spacing:.3px;
+                                color:#fff;
+                                background:
+                                    ${
+                                        isDirect
+                                            ? "linear-gradient(135deg,#7c3aed,#9333ea)"
+                                            : "linear-gradient(135deg,#0891b2,#2563eb)"
+                                    };
                             ">
                                 ${
-                                    user.created_at
-                                    ? new Date(user.created_at)
-                                        .toLocaleDateString()
-                                    : "-"
+                                    isDirect
+                                        ? "LEVEL 1 • DIRECT"
+                                        : `LEVEL ${level} • INDIRECT`
                                 }
-                            </div>
+                            </span>
 
                         </div>
 
-                    `).join("")}
 
+                        <div style="
+                            margin-top:4px;
+                            color:#777;
+                            font-size:11px;
+                            overflow:hidden;
+                            text-overflow:ellipsis;
+                            white-space:nowrap;
+                        ">
+                            ${user.email || "-"}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    text-align:right;
+                    min-width:75px;
+                ">
+
+                    <div style="
+                        color:#777;
+                        font-size:10px;
+                        font-weight:700;
+                        text-transform:uppercase;
+                        letter-spacing:.5px;
+                    ">
+                        Balance
+                    </div>
+
+                    <div style="
+                        margin-top:3px;
+                        color:#17142b;
+                        font-size:13px;
+                        font-weight:850;
+                        white-space:nowrap;
+                    ">
+                        ${money(user.balance || 0)}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div style="
+                display:flex;
+                flex-wrap:wrap;
+                gap:8px;
+                margin-top:14px;
+                padding-top:12px;
+                border-top:1px solid rgba(15,23,42,.07);
+            ">
+
+                <div style="
+                    flex:1;
+                    min-width:120px;
+                    padding:9px 11px;
+                    border-radius:12px;
+                    background:rgba(255,255,255,.75);
+                    border:1px solid rgba(15,23,42,.06);
+                ">
+
+                    <div style="
+                        color:#888;
+                        font-size:9px;
+                        font-weight:800;
+                        text-transform:uppercase;
+                        letter-spacing:.5px;
+                    ">
+                        Team Size
+                    </div>
+
+                    <div style="
+                        margin-top:3px;
+                        color:#17142b;
+                        font-size:13px;
+                        font-weight:850;
+                    ">
+                        ${teamCount}
+                        ${
+                            teamCount === 1
+                                ? " member"
+                                : " members"
+                        }
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    flex:1;
+                    min-width:120px;
+                    padding:9px 11px;
+                    border-radius:12px;
+                    background:rgba(255,255,255,.75);
+                    border:1px solid rgba(15,23,42,.06);
+                ">
+
+                    <div style="
+                        color:#888;
+                        font-size:9px;
+                        font-weight:800;
+                        text-transform:uppercase;
+                        letter-spacing:.5px;
+                    ">
+                        Joined
+                    </div>
+
+                    <div style="
+                        margin-top:3px;
+                        color:#17142b;
+                        font-size:12px;
+                        font-weight:750;
+                        white-space:nowrap;
+                    ">
+                        ${
+                            user.created_at
+                                ? new Date(
+                                    user.created_at
+                                ).toLocaleDateString()
+                                : "-"
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    `;
+
+}).join("")}
                 `;
 
             }
