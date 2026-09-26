@@ -4230,8 +4230,39 @@ window.addEventListener("DOMContentLoaded", function(){
         window.location.search
     );
 
-    if(params.get("register") === "1"){
+    const referralCode =
+        params.get("ref");
+
+    if(
+        params.get("register") === "1" ||
+        referralCode
+    ){
+
         showRegister();
+
+        if(referralCode){
+
+            const referralInput =
+                document.getElementById(
+                    "registerReferral"
+                );
+
+            if(referralInput){
+
+                referralInput.value =
+                    referralCode
+                        .trim()
+                        .toUpperCase();
+
+                referralInput.readOnly = true;
+
+                referralInput.style.background =
+                    "#f5f3ff";
+
+                referralInput.style.cursor =
+                    "not-allowed";
+            }
+        }
     }
 
 });
@@ -6699,7 +6730,88 @@ async function loadReferral(){
     }
 
 }
+/* =========================================================
+   COPY REFERRAL LINK
+========================================================= */
+async function copyReferralLink(){
 
+    const input =
+        document.getElementById("referralLink");
+
+    if(!input || !input.value.trim()){
+
+        showToast(
+            "Referral link is not available.",
+            "error"
+        );
+
+        return;
+    }
+
+    const value =
+        input.value.trim();
+
+    try{
+
+        if(
+            navigator.clipboard &&
+            window.isSecureContext
+        ){
+
+            await navigator.clipboard.writeText(value);
+
+        }else{
+
+            const textarea =
+                document.createElement("textarea");
+
+            textarea.value = value;
+
+            textarea.style.position = "fixed";
+            textarea.style.left = "-9999px";
+            textarea.style.top = "0";
+            textarea.style.opacity = "0";
+
+            document.body.appendChild(textarea);
+
+            textarea.focus();
+            textarea.select();
+            textarea.setSelectionRange(
+                0,
+                value.length
+            );
+
+            const copied =
+                document.execCommand("copy");
+
+            document.body.removeChild(textarea);
+
+            if(!copied){
+
+                throw new Error("Copy failed");
+            }
+        }
+
+        showToast(
+            "Referral link copied successfully.",
+            "success"
+        );
+
+    }catch(error){
+
+        console.error(
+            "REFERRAL COPY ERROR:",
+            error
+        );
+
+        showToast(
+            "Unable to copy referral link.",
+            "error"
+        );
+
+    }
+
+}
 /* =========================================================
    LOGOUT
 ========================================================= */
