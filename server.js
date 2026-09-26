@@ -4066,128 +4066,260 @@ app.post(
                recorded in the central earnings table.
             */
 
-            const userResult =
-                await client.query(
-                    `
-                    SELECT
-                        referred_by
-                    FROM users
-                    WHERE id = $1
-                    `,
-                    [deposit.user_id]
-                );
+            /*
+   FIRST DEPOSIT REFERRAL SYSTEM
+
+   Direct referrer   = 10%
+   Indirect referrer = 5%
+
+   Bonus is given only when this is
+   the user's FIRST approved deposit.
+*/
+
+let referralBonus = 0;
+
+const firstDepositCheck =
+    await client.query(
+        `
+        SELECT COUNT(*) AS count
+        FROM deposits
+        WHERE user_id = $1
+        AND status = 'approved'
+        AND id <> $2
+        `,
+        [
+            deposit.user_id,
+            deposit.id
+        ]
+    );
+
+const approvedDepositCount =
+    Number(
+        firstDepositCheck.rows[0].count || 0
+    );
 
 
-            let referralBonus = 0;
+if (approvedDepositCount === 0) {
+
+    const userResult =
+        await client.query(
+            `
+            SELECT
+                referred_by
+            FROM users
+            WHERE id = $1
+            `,
+            [deposit.user_id]
+        );
 
 
-            if (
-                userResult.rows.length > 0 &&
+    if (
+        userResult.rows.length > 0 &&
+        userResult.rows[0].referred_by
+    ) {
+
+        const directReferrerId =
+            Number(
                 userResult.rows[0].referred_by
-            ) {
-
-                const referrerId =
-                    Number(
-                        userResult.rows[0]
-                            .referred_by
-                    );
+            );
 
 
-                referralBonus =
-                    Number(
-                        (
-                            Number(
-                                deposit.amount
-                            ) *
-                            10 /
-                            100
-                        ).toFixed(6)
-                    );
+        /*
+           DIRECT REFERRER — 10%
+        */
+
+        const directBonus =
+            Number(
+                (
+                    Number(deposit.amount) * 10 / 100
+                ).toFixed(6)
+            );
 
 
-                await client.query(
-                    `
-                    UPDATE users
-                    SET balance =
-                        balance + $1
-                    WHERE id = $2
-                    `,
-                    [
-                        referralBonus,
-                        referrerId
-                    ]
+        await client.query(
+            `
+            UPDATE users
+            SET balance = balance + $1
+            WHERE id = $2
+            `,
+            [
+                directBonus,
+                directReferrerId
+            ]
+        );
+
+
+        await client.query(
+            `
+            INSERT INTO referral_bonuses
+            (
+                referrer_id,
+                referred_user_id,
+                deposit_id,
+                deposit_amount,
+                bonus_percent,
+                bonus_amount
+            )
+            VALUES
+            (
+                $1,
+                $2,
+                $3,
+                $4,
+                10,
+                $5
+            )
+            `,
+            [
+                directReferrerId,
+                deposit.user_id,
+                deposit.id,
+                Number(deposit.amount),
+                directBonus
+            ]
+        );
+
+
+        await client.query(
+            `
+            INSERT INTO earnings
+            (
+                user_id,
+                type,
+                source_id,
+                description,
+                amount
+            )
+            VALUES
+            (
+                $1,
+                'referral_bonus',
+                $2,
+                $3,
+                $4
+            )
+            `,
+            [
+                directReferrerId,
+                deposit.id,
+                "Direct team referral bonus",
+                directBonus
+            ]
+        );
+
+
+        /*
+           INDIRECT REFERRER — 5%
+        */
+
+        const indirectResult =
+            await client.query(
+                `
+                SELECT
+                    referred_by
+                FROM users
+                WHERE id = $1
+                `,
+                [directReferrerId]
+            );
+
+
+        if (
+            indirectResult.rows.length > 0 &&
+            indirectResult.rows[0].referred_by
+        ) {
+
+            const indirectReferrerId =
+                Number(
+                    indirectResult.rows[0].referred_by
                 );
 
 
-                /*
-                   Preserve existing referral_bonuses
-                   table data/structure.
-                */
-
-                await client.query(
-                    `
-                    INSERT INTO referral_bonuses
+            const indirectBonus =
+                Number(
                     (
-                        referrer_id,
-                        referred_user_id,
-                        deposit_id,
-                        deposit_amount,
-                        bonus_percent,
-                        bonus_amount
-                    )
-                    VALUES
-                    (
-                        $1,
-                        $2,
-                        $3,
-                        $4,
-                        10,
-                        $5
-                    )
-                    `,
-                    [
-                        referrerId,
-                        deposit.user_id,
-                        deposit.id,
-                        Number(
-                            deposit.amount
-                        ),
-                        referralBonus
-                    ]
+                        Number(deposit.amount) * 5 / 100
+                    ).toFixed(6)
                 );
 
 
-                /*
-                   New central earnings history.
-                */
+            await client.query(
+                `
+                UPDATE users
+                SET balance = balance + $1
+                WHERE id = $2
+                `,
+                [
+                    indirectBonus,
+                    indirectReferrerId
+                ]
+            );
 
-                await client.query(
-                    `
-                    INSERT INTO earnings
-                    (
-                        user_id,
-                        type,
-                        source_id,
-                        description,
-                        amount
-                    )
-                    VALUES
-                    (
-                        $1,
-                        'referral_bonus',
-                        $2,
-                        $3,
-                        $4
-                    )
-                    `,
-                    [
-                        referrerId,
-                        deposit.id,
-                        "Team referral bonus",
-                        referralBonus
-                    ]
-                );
-            }
+
+            await client.query(
+                `
+                INSERT INTO referral_bonuses
+                (
+                    referrer_id,
+                    referred_user_id,
+                    deposit_id,
+                    deposit_amount,
+                    bonus_percent,
+                    bonus_amount
+                )
+                VALUES
+                (
+                    $1,
+                    $2,
+                    $3,
+                    $4,
+                    5,
+                    $5
+                )
+                `,
+                [
+                    indirectReferrerId,
+                    deposit.user_id,
+                    deposit.id,
+                    Number(deposit.amount),
+                    indirectBonus
+                ]
+            );
+
+
+            await client.query(
+                `
+                INSERT INTO earnings
+                (
+                    user_id,
+                    type,
+                    source_id,
+                    description,
+                    amount
+                )
+                VALUES
+                (
+                    $1,
+                    'referral_bonus',
+                    $2,
+                    $3,
+                    $4
+                )
+                `,
+                [
+                    indirectReferrerId,
+                    deposit.id,
+                    "Indirect team referral bonus",
+                    indirectBonus
+                ]
+            );
+        }
+
+
+        referralBonus =
+            directBonus;
+    }
+}
 
 
             await client.query(
