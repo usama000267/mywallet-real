@@ -4256,36 +4256,7 @@ if (approvedDepositCount === 0) {
             );
 
 
-            await client.query(
-                `
-                INSERT INTO referral_bonuses
-                (
-                    referrer_id,
-                    referred_user_id,
-                    deposit_id,
-                    deposit_amount,
-                    bonus_percent,
-                    bonus_amount
-                )
-                VALUES
-                (
-                    $1,
-                    $2,
-                    $3,
-                    $4,
-                    5,
-                    $5
-                )
-                `,
-                [
-                    indirectReferrerId,
-                    deposit.user_id,
-                    deposit.id,
-                    Number(deposit.amount),
-                    indirectBonus
-                ]
-            );
-
+        
 
             await client.query(
                 `
