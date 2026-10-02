@@ -1,0 +1,423 @@
+﻿/* ================= PREMIUM PROMOTIONAL REWARD UI ================= */
+
+.promo-reward-page{
+    position:relative;
+    overflow:hidden;
+    padding:24px;
+    border-radius:30px;
+    background:
+        radial-gradient(circle at 10% 10%,rgba(108,77,246,.28),transparent 28%),
+        radial-gradient(circle at 90% 15%,rgba(0,210,255,.20),transparent 25%),
+        radial-gradient(circle at 50% 100%,rgba(255,0,190,.16),transparent 30%),
+        linear-gradient(145deg,#080b22,#111038 48%,#080b20);
+    box-shadow:0 25px 70px rgba(20,10,80,.35);
+}
+
+.promo-reward-hero{
+    position:relative;
+    overflow:hidden;
+    min-height:190px;
+    display:flex;
+    align-items:center;
+    gap:24px;
+    padding:32px;
+    border:1px solid rgba(89,210,255,.65);
+    border-radius:26px;
+    background:
+        radial-gradient(circle at 78% 30%,rgba(255,0,200,.55),transparent 28%),
+        radial-gradient(circle at 55% 80%,rgba(0,140,255,.45),transparent 30%),
+        linear-gradient(120deg,#101a62,#391078 55%,#15052f);
+    box-shadow:
+        0 0 30px rgba(78,108,255,.25),
+        inset 0 0 35px rgba(255,255,255,.04);
+}
+
+.promo-reward-hero:before{
+    content:"";
+    position:absolute;
+    width:260px;
+    height:260px;
+    right:-70px;
+    top:-100px;
+    border-radius:50%;
+    background:rgba(255,0,190,.22);
+    filter:blur(45px);
+}
+
+.promo-reward-icon{
+    position:relative;
+    z-index:1;
+    width:82px;
+    height:82px;
+    min-width:82px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:24px;
+    font-size:42px;
+    color:#fff;
+    background:linear-gradient(135deg,#704cff,#d928ff);
+    border:2px solid rgba(255,255,255,.4);
+    box-shadow:
+        0 0 28px rgba(174,67,255,.75),
+        inset 0 0 20px rgba(255,255,255,.18);
+}
+
+.promo-reward-kicker{
+    position:relative;
+    z-index:1;
+    color:#67e8ff;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+}
+
+.promo-reward-title{
+    position:relative;
+    z-index:1;
+    margin-top:6px;
+    font-size:42px;
+    line-height:1.1;
+    font-weight:900;
+    background:linear-gradient(90deg,#fff,#d78cff,#59e9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 0 25px rgba(161,80,255,.25);
+}
+
+.promo-reward-subtitle{
+    position:relative;
+    z-index:1;
+    margin-top:10px;
+    color:#d8dcff;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.promo-summary-grid{
+    position:relative;
+    z-index:2;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:18px;
+    margin:22px 0;
+}
+
+.promo-summary-card{
+    position:relative;
+    overflow:hidden;
+    min-height:125px;
+    padding:22px;
+    border-radius:22px;
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff;
+    box-shadow:0 15px 35px rgba(0,0,0,.28);
+}
+
+.promo-summary-card:nth-child(1){
+    background:linear-gradient(135deg,#164de8,#078cff 55%,#13cfff);
+}
+
+.promo-summary-card:nth-child(2){
+    background:linear-gradient(135deg,#008b70,#00bd7b 55%,#19e6a0);
+}
+
+.promo-summary-card:nth-child(3){
+    background:linear-gradient(135deg,#ed246d,#bd24d8 55%,#ff8a25);
+}
+
+.promo-summary-card:after{
+    content:"";
+    position:absolute;
+    width:130px;
+    height:130px;
+    right:-45px;
+    bottom:-65px;
+    border-radius:50%;
+    background:rgba(255,255,255,.18);
+    filter:blur(5px);
+}
+
+.promo-summary-label{
+    position:relative;
+    z-index:1;
+    font-size:13px;
+    font-weight:700;
+    opacity:.9;
+    letter-spacing:.3px;
+}
+
+.promo-summary-value{
+    position:relative;
+    z-index:1;
+    margin-top:8px;
+    font-size:30px;
+    font-weight:900;
+    color:#fff;
+    text-shadow:0 3px 15px rgba(0,0,0,.22);
+}
+
+.promo-reward-table-card{
+    position:relative;
+    padding:24px;
+    border-radius:25px;
+    border:1px solid rgba(139,111,255,.38);
+    background:rgba(8,10,35,.76);
+    box-shadow:
+        0 20px 55px rgba(0,0,0,.3),
+        inset 0 0 35px rgba(107,73,255,.07);
+    backdrop-filter:blur(14px);
+}
+
+.promo-table-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.promo-table-title{
+    font-size:25px;
+    font-weight:900;
+    color:#fff;
+}
+
+.promo-table-title:before{
+    content:"◆";
+    margin-right:10px;
+    color:#ffd84d;
+    text-shadow:0 0 15px #ffb300;
+}
+
+.promo-table-subtitle{
+    margin-top:5px;
+    color:#9da5d0;
+    font-size:13px;
+}
+
+.promo-live-badge{
+    padding:8px 14px;
+    border-radius:99px;
+    color:#63ffb4;
+    background:rgba(0,255,150,.08);
+    border:1px solid rgba(0,255,150,.3);
+    font-size:11px;
+    font-weight:800;
+    box-shadow:0 0 15px rgba(0,255,150,.12);
+}
+
+.promo-reward-list{
+    display:flex;
+    flex-direction:column;
+    gap:13px;
+}
+
+.promo-reward-row{
+    position:relative;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:105px 1fr 130px 145px;
+    align-items:center;
+    gap:18px;
+    min-height:92px;
+    padding:16px 18px;
+    border-radius:20px;
+    border:1px solid rgba(104,122,255,.3);
+    background:linear-gradient(110deg,rgba(26,31,82,.94),rgba(16,19,52,.94));
+    box-shadow:0 8px 25px rgba(0,0,0,.22);
+    transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+
+.promo-reward-row:before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    background:linear-gradient(#9c5cff,#00d9ff);
+    box-shadow:0 0 15px #8b5cff;
+}
+
+.promo-reward-row:hover{
+    transform:translateY(-2px);
+    border-color:rgba(118,92,255,.75);
+    box-shadow:0 12px 35px rgba(74,55,180,.3);
+}
+
+.promo-members{
+    color:#fff;
+    font-size:22px;
+    font-weight:900;
+    text-align:center;
+}
+
+.promo-members span{
+    display:block;
+    margin-top:4px;
+    color:#8992bd;
+    font-size:10px;
+    font-weight:600;
+}
+
+.promo-progress-wrap{
+    min-width:0;
+}
+
+.promo-progress-text{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:8px;
+    color:#aeb5d9;
+    font-size:11px;
+}
+
+.promo-progress-text strong{
+    color:#fff;
+}
+
+.promo-fuel{
+    height:11px;
+    overflow:hidden;
+    border-radius:99px;
+    background:#080b20;
+    border:1px solid rgba(115,100,255,.25);
+}
+
+.promo-fuel-fill{
+    height:100%;
+    border-radius:99px;
+    background:linear-gradient(90deg,#7b3cff,#d72dff,#19dfff);
+    box-shadow:0 0 14px rgba(148,66,255,.85);
+    transition:width .5s ease;
+}
+
+.promo-reward-amount{
+    color:#ffd94a;
+    font-size:22px;
+    font-weight:900;
+    text-align:center;
+    text-shadow:0 0 15px rgba(255,204,60,.25);
+}
+
+.promo-claim-btn{
+    width:100%;
+    min-height:42px;
+    border:0;
+    border-radius:13px;
+    padding:10px 14px;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+    transition:all .2s ease;
+}
+
+.promo-claim-btn.unlocked{
+    color:#fff;
+    background:linear-gradient(135deg,#704cff,#c72cff);
+    box-shadow:0 7px 22px rgba(143,57,255,.4);
+}
+
+.promo-claim-btn.unlocked:hover{
+    transform:translateY(-2px) scale(1.02);
+    box-shadow:0 10px 28px rgba(178,57,255,.55);
+}
+
+.promo-claim-btn.claimed{
+    color:#071c13;
+    background:linear-gradient(135deg,#27e69a,#74ffc4);
+    box-shadow:0 5px 18px rgba(38,230,154,.25);
+}
+
+.promo-claim-btn.locked{
+    color:#858bad;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.1);
+    cursor:not-allowed;
+}
+
+.promo-loading{
+    padding:35px;
+    border-radius:18px;
+    color:#aab1d3;
+    text-align:center;
+    background:rgba(255,255,255,.035);
+}
+
+@media(max-width:800px){
+    .promo-reward-page{
+        padding:14px;
+        border-radius:22px;
+    }
+
+    .promo-reward-hero{
+        min-height:auto;
+        padding:24px 18px;
+        gap:15px;
+    }
+
+    .promo-reward-icon{
+        width:60px;
+        min-width:60px;
+        height:60px;
+        font-size:30px;
+        border-radius:18px;
+    }
+
+    .promo-reward-title{
+        font-size:28px;
+    }
+
+    .promo-summary-grid{
+        grid-template-columns:1fr;
+        gap:12px;
+    }
+
+    .promo-summary-card{
+        min-height:95px;
+    }
+
+    .promo-reward-table-card{
+        padding:16px 12px;
+    }
+
+    .promo-table-head{
+        align-items:flex-start;
+    }
+
+    .promo-reward-row{
+        grid-template-columns:70px 1fr;
+        gap:12px;
+        padding:14px;
+    }
+
+    .promo-reward-amount{
+        text-align:left;
+    }
+
+    .promo-reward-row > div:last-child{
+        grid-column:1/-1;
+    }
+}
+
+@media(max-width:480px){
+    .promo-reward-title{
+        font-size:24px;
+    }
+
+    .promo-reward-subtitle{
+        font-size:12px;
+    }
+
+    .promo-table-title{
+        font-size:20px;
+    }
+
+    .promo-live-badge{
+        display:none;
+    }
+}

@@ -15,6 +15,12 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const db = require("./database");
+const {
+    createPasswordSystem
+} = require("./password-system");
+const {
+    verifyBEP20Transaction
+} = require("./bep20-verifier");
 const app = express();
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -533,7 +539,21 @@ async function requireAllowedUser(req, res, next) {
    The old requireLogin remains available for
    read-only endpoints where necessary.
 */
+/* =====================================================
+   PASSWORD SYSTEM
+===================================================== */
 
+const passwordSystem =
+    createPasswordSystem({
+        db,
+        resend,
+        requireAllowedUser
+    });
+
+app.use(
+    "/api/password",
+    passwordSystem
+);
 /* =====================================================
    HOME
 ===================================================== */
@@ -1268,7 +1288,593 @@ app.post(
     }
 );
 
+/* =====================================================
+   PASSWORD RESET - SEND OTP
+===================================================== */
 
+app.post(
+    "/api/password-reset/send-otp",
+    async (req, res) => {
+
+        try {
+
+            await db.ready;
+
+            const email =
+                normalizeEmail(
+                    req.body.email
+                );
+
+            if(!email){
+
+                return res.status(400).json({
+                    success:false,
+                    message:"Email is required."
+                });
+
+            }
+
+            const userResult =
+                await db.query(
+                    `
+                    SELECT
+                        id,
+                        email
+                    FROM users
+                    WHERE email = $1
+                    LIMIT 1
+                    `,
+                    [email]
+                );
+
+            if(userResult.rows.length === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    message:
+                        "No account was found with this email address."
+                });
+
+            }
+
+            const user =
+                userResult.rows[0];
+
+            await sendEmailOTP({
+                email:user.email,
+                purpose:"password_reset",
+                userId:user.id
+            });
+
+            res.json({
+                success:true,
+                message:
+                    "Password reset OTP has been sent to your registered email."
+            });
+
+        }catch(error){
+
+            console.error(
+                "PASSWORD RESET SEND OTP ERROR:",
+                error
+            );
+
+            res.status(400).json({
+                success:false,
+                message:
+                    error.message ||
+                    "Unable to send password reset OTP."
+            });
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   PASSWORD RESET - VERIFY OTP
+===================================================== */
+
+app.post(
+    "/api/password-reset/verify-otp",
+    async (req, res) => {
+
+        try {
+
+            await db.ready;
+
+            const email =
+                normalizeEmail(
+                    req.body.email
+                );
+
+            const otp =
+                String(
+                    req.body.otp || ""
+                ).trim();
+
+
+            if(!email){
+
+                return res.status(400).json({
+                    success:false,
+                    message:"Email is required."
+                });
+
+            }
+
+
+            if(!/^\d{6}$/.test(otp)){
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "Please enter the 6-digit OTP."
+                });
+
+            }
+
+
+            const userResult =
+                await db.query(
+                    `
+                    SELECT
+                        id,
+                        email
+                    FROM users
+                    WHERE email = $1
+                    LIMIT 1
+                    `,
+                    [email]
+                );
+
+
+            if(userResult.rows.length === 0){
+
+                return res.status(404).json({
+                    success:false,
+                    message:
+                        "Account not found."
+                });
+
+            }
+
+
+            const user =
+                userResult.rows[0];
+
+
+            const otpResult =
+                await db.query(
+                    `
+                    SELECT
+                        id,
+                        user_id,
+                        email,
+                        otp_hash,
+                        expires_at,
+                        attempts,
+                        used
+                    FROM email_otps
+                    WHERE email = $1
+                    AND user_id = $2
+                    AND purpose = $3
+                    AND used = FALSE
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    `,
+                    [
+                        email,
+                        user.id,
+                        "password_reset"
+                    ]
+                );
+
+
+            if(otpResult.rows.length === 0){
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "OTP not found. Please request a new OTP."
+                });
+
+            }
+
+
+            const otpRecord =
+                otpResult.rows[0];
+
+
+            if(
+                new Date(
+                    otpRecord.expires_at
+                ).getTime() < Date.now()
+            ){
+
+                await db.query(
+                    `
+                    UPDATE email_otps
+                    SET used = TRUE
+                    WHERE id = $1
+                    `,
+                    [otpRecord.id]
+                );
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "This OTP has expired. Please request a new OTP."
+                });
+
+            }
+
+
+            if(
+                Number(
+                    otpRecord.attempts || 0
+                ) >= 5
+            ){
+
+                await db.query(
+                    `
+                    UPDATE email_otps
+                    SET used = TRUE
+                    WHERE id = $1
+                    `,
+                    [otpRecord.id]
+                );
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "Too many incorrect attempts. Please request a new OTP."
+                });
+
+            }
+
+
+            const submittedOtpHash =
+                hashOTP(otp);
+
+
+            if(
+                submittedOtpHash !==
+                otpRecord.otp_hash
+            ){
+
+                const nextAttempts =
+                    Number(
+                        otpRecord.attempts || 0
+                    ) + 1;
+
+
+                await db.query(
+                    `
+                    UPDATE email_otps
+                    SET attempts = $1
+                    WHERE id = $2
+                    `,
+                    [
+                        nextAttempts,
+                        otpRecord.id
+                    ]
+                );
+
+
+                if(nextAttempts >= 5){
+
+                    await db.query(
+                        `
+                        UPDATE email_otps
+                        SET used = TRUE
+                        WHERE id = $1
+                        `,
+                        [otpRecord.id]
+                    );
+
+                    return res.status(400).json({
+                        success:false,
+                        message:
+                            "Too many incorrect attempts. Please request a new OTP."
+                    });
+
+                }
+
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "Incorrect OTP."
+                });
+
+            }
+
+
+            await db.query(
+                `
+                UPDATE email_otps
+                SET used = TRUE
+                WHERE id = $1
+                `,
+                [otpRecord.id]
+            );
+
+
+            req.session.passwordResetVerifiedUserId =
+                user.id;
+
+
+            req.session.passwordResetVerifiedEmail =
+                user.email;
+
+
+            req.session.passwordResetVerifiedAt =
+                Date.now();
+
+
+            req.session.save(
+                sessionError => {
+
+                    if(sessionError){
+
+                        console.error(
+                            "PASSWORD RESET SESSION ERROR:",
+                            sessionError
+                        );
+
+                        return res.status(500).json({
+                            success:false,
+                            message:
+                                "Unable to verify password reset."
+                        });
+
+                    }
+
+
+                    res.json({
+                        success:true,
+                        message:
+                            "OTP verified successfully. You can now set a new password."
+                    });
+
+                }
+            );
+
+        }catch(error){
+
+            console.error(
+                "PASSWORD RESET VERIFY OTP ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                message:
+                    "Unable to verify OTP."
+            });
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   PASSWORD RESET - CHANGE PASSWORD
+===================================================== */
+
+app.post(
+    "/api/password-reset/change",
+    async (req, res) => {
+
+        try {
+
+            await db.ready;
+
+
+            const userId =
+                req.session
+                    .passwordResetVerifiedUserId;
+
+
+            const verifiedAt =
+                req.session
+                    .passwordResetVerifiedAt;
+
+
+            if(
+                !userId ||
+                !verifiedAt
+            ){
+
+                return res.status(403).json({
+                    success:false,
+                    message:
+                        "Please verify the OTP first."
+                });
+
+            }
+
+
+            /* OTP verification authorization:
+               valid for 15 minutes */
+
+            if(
+                Date.now() -
+                Number(verifiedAt)
+                >
+                15 * 60 * 1000
+            ){
+
+                delete req.session
+                    .passwordResetVerifiedUserId;
+
+                delete req.session
+                    .passwordResetVerifiedEmail;
+
+                delete req.session
+                    .passwordResetVerifiedAt;
+
+
+                return res.status(403).json({
+                    success:false,
+                    message:
+                        "Password reset session expired. Please request a new OTP."
+                });
+
+            }
+
+
+            const newPassword =
+                String(
+                    req.body.newPassword || ""
+                );
+
+
+            const confirmPassword =
+                String(
+                    req.body.confirmPassword || ""
+                );
+
+
+            if(!newPassword){
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "New password is required."
+                });
+
+            }
+
+
+            if(!confirmPassword){
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "Please confirm your new password."
+                });
+
+            }
+
+
+            if(
+                newPassword !==
+                confirmPassword
+            ){
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "New password and confirm password do not match."
+                });
+
+            }
+
+
+            if(newPassword.length < 8){
+
+                return res.status(400).json({
+                    success:false,
+                    message:
+                        "Password must be at least 8 characters long."
+                });
+
+            }
+
+
+            const passwordHash =
+                await bcrypt.hash(
+                    newPassword,
+                    12
+                );
+
+
+            const updateResult =
+                await db.query(
+                    `
+                    UPDATE users
+                    SET password = $1
+                    WHERE id = $2
+                    `,
+                    [
+                        passwordHash,
+                        userId
+                    ]
+                );
+
+
+            if(
+                updateResult.rowCount === 0
+            ){
+
+                return res.status(404).json({
+                    success:false,
+                    message:
+                        "User account was not found."
+                });
+
+            }
+
+
+            delete req.session
+                .passwordResetVerifiedUserId;
+
+            delete req.session
+                .passwordResetVerifiedEmail;
+
+            delete req.session
+                .passwordResetVerifiedAt;
+
+
+            req.session.save(
+                sessionError => {
+
+                    if(sessionError){
+
+                        console.error(
+                            "PASSWORD RESET SESSION CLEANUP ERROR:",
+                            sessionError
+                        );
+
+                        return res.status(500).json({
+                            success:false,
+                            message:
+                                "Password was changed, but session cleanup failed."
+                        });
+
+                    }
+
+
+                    res.json({
+                        success:true,
+                        message:
+                            "Password changed successfully. Please login with your new password."
+                    });
+
+                }
+            );
+
+        }catch(error){
+
+            console.error(
+                "PASSWORD RESET CHANGE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success:false,
+                message:
+                    "Unable to change password."
+            });
+
+        }
+
+    }
+);
 /* =====================================================
    LOGOUT
 ===================================================== */
@@ -1369,6 +1975,296 @@ app.get(
 );
 
 
+
+/* =====================================================
+   PROMOTIONAL REWARDS
+   Valid direct members + reward claiming
+   Existing systems preserved
+===================================================== */
+
+app.get(
+    "/api/promotional-rewards",
+    requireAllowedUser,
+    async (req, res) => {
+
+        try {
+
+            const userId = req.session.userId;
+
+            const validMembersResult =
+                await db.query(
+                    `
+                    SELECT COUNT(*) AS count
+                    FROM users u
+                    WHERE u.referred_by = $1
+                    AND EXISTS (
+                        SELECT 1
+                        FROM deposits d
+                        WHERE d.user_id = u.id
+                        AND d.status = 'approved'
+                    )
+                    `,
+                    [userId]
+                );
+
+            const validMembers =
+                Number(
+                    validMembersResult.rows[0].count || 0
+                );
+
+            const claimedResult =
+                await db.query(
+                    `
+                    SELECT reward_level
+                    FROM promotional_rewards
+                    WHERE user_id = $1
+                    `,
+                    [userId]
+                );
+
+            const claimedLevels =
+                claimedResult.rows.map(
+                    row => Number(row.reward_level)
+                );
+
+            const rewards = [
+                { members: 2, amount: 10 },
+                { members: 4, amount: 15 },
+                { members: 6, amount: 20 },
+                { members: 8, amount: 30 },
+                { members: 10, amount: 35 },
+                { members: 20, amount: 60 },
+                { members: 25, amount: 75 },
+                { members: 50, amount: 130 },
+                { members: 75, amount: 200 },
+                { members: 100, amount: 250 }
+            ];
+
+            res.json({
+                success: true,
+                validMembers,
+                rewards: rewards.map(reward => ({
+                    ...reward,
+                    claimed:
+                        claimedLevels.includes(
+                            reward.members
+                        ),
+                    unlocked:
+                        validMembers >= reward.members
+                }))
+            });
+
+        } catch (error) {
+
+            console.error(
+                "PROMOTIONAL REWARDS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to load promotional rewards."
+            });
+        }
+    }
+);
+
+
+app.post(
+    "/api/promotional-rewards/:members/claim",
+    requireAllowedUser,
+    async (req, res) => {
+
+        const client =
+            await db.pool.connect();
+
+        try {
+
+            const userId =
+                req.session.userId;
+
+            const members =
+                Number(req.params.members);
+
+            const rewards = {
+                2: 10,
+                4: 15,
+                6: 20,
+                8: 30,
+                10: 35,
+                20: 60,
+                25: 75,
+                50: 130,
+                75: 200,
+                100: 250
+            };
+
+            if (
+                !Number.isInteger(members) ||
+                !rewards[members]
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid reward level."
+                });
+            }
+
+            await client.query("BEGIN");
+
+            const validResult =
+                await client.query(
+                    `
+                    SELECT COUNT(*) AS count
+                    FROM users u
+                    WHERE u.referred_by = $1
+                    AND EXISTS (
+                        SELECT 1
+                        FROM deposits d
+                        WHERE d.user_id = u.id
+                        AND d.status = 'approved'
+                    )
+                    `,
+                    [userId]
+                );
+
+            const validMembers =
+                Number(
+                    validResult.rows[0].count || 0
+                );
+
+            if (validMembers < members) {
+
+                await client.query("ROLLBACK");
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "You do not have enough valid members."
+                });
+            }
+
+            const rewardAmount =
+                rewards[members];
+
+            const existing =
+                await client.query(
+                    `
+                    SELECT id
+                    FROM promotional_rewards
+                    WHERE user_id = $1
+                    AND reward_level = $2
+                    FOR UPDATE
+                    `,
+                    [userId, members]
+                );
+
+            if (existing.rows.length > 0) {
+
+                await client.query("ROLLBACK");
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "This reward has already been claimed."
+                });
+            }
+
+            await client.query(
+                `
+                UPDATE users
+                SET balance = balance + $1
+                WHERE id = $2
+                `,
+                [
+                    rewardAmount,
+                    userId
+                ]
+            );
+
+            await client.query(
+                `
+                INSERT INTO promotional_rewards
+                (
+                    user_id,
+                    reward_level,
+                    reward_amount
+                )
+                VALUES
+                (
+                    $1,
+                    $2,
+                    $3
+                )
+                `,
+                [
+                    userId,
+                    members,
+                    rewardAmount
+                ]
+            );
+
+            await client.query(
+                `
+                INSERT INTO earnings
+                (
+                    user_id,
+                    type,
+                    source_id,
+                    description,
+                    amount
+                )
+                VALUES
+                (
+                    $1,
+                    'promotional_reward',
+                    NULL,
+                    $2,
+                    $3
+                )
+                `,
+                [
+                    userId,
+                    'Promotional reward - ' +
+                    members +
+                    ' valid members',
+                    rewardAmount
+                ]
+            );
+
+            await client.query("COMMIT");
+
+            res.json({
+                success: true,
+                message:
+                    "Promotional reward claimed successfully.",
+                reward: rewardAmount,
+                validMembers
+            });
+
+        } catch (error) {
+
+            await client.query("ROLLBACK");
+
+            console.error(
+                "PROMOTIONAL REWARD CLAIM ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to claim promotional reward."
+            });
+
+        } finally {
+
+            client.release();
+        }
+    }
+);
+
 /* =====================================================
    DASHBOARD
 ===================================================== */
@@ -1443,6 +2339,38 @@ const todayEarningsResult =
         [req.session.userId]
     );
 
+/* ==============================
+               TODAY TEAM EARNINGS
+
+               Only NFT team bonuses:
+               - Direct: 20%
+               - Indirect: 10%
+            ============================== */
+
+            const todayTeamEarningsResult =
+                await db.query(
+                    `
+                    SELECT
+                        COALESCE(
+                            SUM(amount),
+                            0
+                        ) AS total
+                    FROM earnings
+                    WHERE user_id = $1
+                    AND type = 'nft_team_bonus'
+                    AND created_at >= CURRENT_DATE
+                    AND created_at <
+                        CURRENT_DATE +
+                        INTERVAL '1 day'
+                    `,
+                    [req.session.userId]
+                );
+                const todayTeamEarnings =
+    Number(
+        todayTeamEarningsResult
+            .rows[0]
+            .total || 0
+    );
             /* ==============================
                TOTAL EARNINGS
             ============================== */
@@ -1559,6 +2487,12 @@ const teamCountResult =
                                 .rows[0]
                                 .total || 0
                         ),
+                        todayTeamEarnings:
+    Number(
+        todayTeamEarningsResult
+            .rows[0]
+            .total || 0
+    ),
 
   ownedNFTs:
     Number(
@@ -2497,7 +3431,109 @@ app.post(
                 );
             }
 
+/*
+   NFT PROFIT TEAM BONUS
+   Direct upline = 20%
+   Second-level upline = 10%
+*/
 
+if (profitAmount > 0) {
+
+    const uplineResult =
+        await client.query(
+            `
+            WITH RECURSIVE uplines AS (
+
+                SELECT
+                    id,
+                    referred_by,
+                    1 AS level
+                FROM users
+                WHERE id = (
+                    SELECT referred_by
+                    FROM users
+                    WHERE id = $1
+                )
+
+                UNION ALL
+
+                SELECT
+                    u.id,
+                    u.referred_by,
+                    uplines.level + 1
+                FROM users u
+                INNER JOIN uplines
+                    ON u.id = uplines.referred_by
+                WHERE uplines.level < 2
+            )
+
+            SELECT
+                id,
+                level
+            FROM uplines
+            WHERE level <= 2
+            ORDER BY level
+            `,
+            [req.session.userId]
+        );
+        for (const upline of uplineResult.rows) {
+
+    const bonusPercent =
+        upline.level === 1
+            ? 20
+            : 10;
+
+    const bonusAmount =
+        Number(
+            (
+                profitAmount *
+                bonusPercent /
+                100
+            ).toFixed(6)
+        );
+
+    if (bonusAmount > 0) {
+
+        await client.query(
+            `
+            UPDATE users
+            SET balance = balance + $1
+            WHERE id = $2
+            `,
+            [
+                bonusAmount,
+                upline.id
+            ]
+        );
+    }
+    await client.query(
+    `
+    INSERT INTO earnings
+    (
+        user_id,
+        type,
+        source_id,
+        description,
+        amount
+    )
+    VALUES
+    (
+        $1,
+        'nft_team_bonus',
+        $2,
+        $3,
+        $4
+    )
+    `,
+    [
+        upline.id,
+        saleResult.rows[0].id,
+        `NFT team bonus - ${bonusPercent}%`,
+        bonusAmount
+    ]
+);
+}
+}
             /*
                Get updated balance.
             */
@@ -3899,9 +4935,661 @@ app.post(
             });
         }
     }
+);/* =====================================================
+   BEP20 AUTO DEPOSIT VERIFICATION + AUTO APPROVAL
+===================================================== */
+
+app.post(
+    "/api/deposits/:id/auto-verify",
+    requireAllowedUser,
+    async (req, res) => {
+
+        const client =
+            await db.pool.connect();
+
+        try {
+
+            const depositId =
+                Number(req.params.id);
+
+
+            if (
+                !Number.isInteger(depositId) ||
+                depositId <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Invalid deposit ID."
+                });
+            }
+
+
+            /*
+               First get the deposit.
+               Blockchain verification happens before
+               any balance/status change.
+            */
+
+            const depositResult =
+                await client.query(
+                    `
+                    SELECT
+                        id,
+                        user_id,
+                        amount,
+                        network,
+                        tx_hash,
+                        status
+                    FROM deposits
+                    WHERE id = $1
+                    AND user_id = $2
+                    `,
+                    [
+                        depositId,
+                        req.session.userId
+                    ]
+                );
+
+
+            if (
+                depositResult.rows.length === 0
+            ) {
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Deposit request not found."
+                });
+            }
+
+
+            const deposit =
+                depositResult.rows[0];
+
+
+            if (
+                deposit.status !==
+                "pending"
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "This deposit has already been processed."
+                });
+            }
+
+
+            if (
+                deposit.network !==
+                "BEP20"
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Automatic verification is only available for BEP20 deposits."
+                });
+            }
+
+
+            if (!deposit.tx_hash) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Transaction hash is required."
+                });
+            }
+
+
+            /*
+               Verify transaction directly on BSC.
+            */
+
+            const verification =
+                await verifyBEP20Transaction(
+                    deposit.tx_hash,
+                    Number(deposit.amount)
+                );
+
+
+            console.log(
+                "BEP20 AUTO VERIFY:",
+                verification
+            );
+
+
+            /*
+               If anything does not match,
+               leave the deposit pending.
+            */
+
+            if (
+                !verification.valid
+            ) {
+
+                return res.json({
+
+                    success: true,
+
+                    approved: false,
+
+                    status:
+                        "pending",
+
+                    message:
+                        verification.reason,
+
+                    verification
+
+                });
+
+            }
+
+
+            /*
+               Blockchain verification succeeded.
+
+               Now begin database transaction.
+            */
+
+            await client.query(
+                "BEGIN"
+            );
+
+
+            /*
+               Prevent two simultaneous requests
+               from processing the same TX hash.
+            */
+
+            await client.query(
+                `
+                SELECT
+                    pg_advisory_xact_lock(
+                        hashtext($1)
+                    )
+                `,
+                [deposit.tx_hash]
+            );
+
+
+            /*
+               Lock the deposit row and check it again.
+            */
+
+            const lockedDepositResult =
+                await client.query(
+                    `
+                    SELECT
+                        id,
+                        user_id,
+                        amount,
+                        network,
+                        tx_hash,
+                        status
+                    FROM deposits
+                    WHERE id = $1
+                    FOR UPDATE
+                    `,
+                    [depositId]
+                );
+
+
+            if (
+                lockedDepositResult.rows.length === 0
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Deposit request not found."
+                });
+            }
+
+
+            const lockedDeposit =
+                lockedDepositResult.rows[0];
+
+
+            /*
+               Another request/admin may have
+               processed it already.
+            */
+
+            if (
+                lockedDeposit.status !==
+                "pending"
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "This deposit has already been processed."
+                });
+            }
+
+
+            /*
+               Same blockchain transaction must
+               never be credited twice.
+            */
+
+            const duplicateResult =
+                await client.query(
+                    `
+                    SELECT
+                        id,
+                        status
+                    FROM deposits
+                    WHERE LOWER(tx_hash) =
+                          LOWER($1)
+                    AND id <> $2
+                    FOR UPDATE
+                    `,
+                    [
+                        lockedDeposit.tx_hash,
+                        lockedDeposit.id
+                    ]
+                );
+
+
+            if (
+                duplicateResult.rows.length > 0
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+                return res.status(409).json({
+                    success: false,
+                    approved: false,
+                    status:
+                        "pending",
+                    message:
+                        "This transaction hash has already been submitted."
+                });
+            }
+
+
+            /*
+               Final amount check inside the
+               database transaction as well.
+            */
+
+            const requestedAmount =
+                Number(
+                    lockedDeposit.amount
+                );
+
+            const blockchainAmount =
+                Number(
+                    verification.blockchainAmount
+                );
+
+
+            if (
+                Math.abs(
+                    requestedAmount -
+                    blockchainAmount
+                ) >= 0.000001
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+                return res.json({
+
+                    success: true,
+
+                    approved: false,
+
+                    status:
+                        "pending",
+
+                    message:
+                        "Transaction amount does not match deposit amount."
+
+                });
+
+            }
+
+
+            /*
+               AUTO APPROVE
+            */
+
+            await client.query(
+                `
+                UPDATE deposits
+                SET status = 'approved'
+                WHERE id = $1
+                `,
+                [lockedDeposit.id]
+            );
+
+
+            /*
+               Credit user's deposit amount.
+            */
+
+            await client.query(
+                `
+                UPDATE users
+                SET balance = balance + $1
+                WHERE id = $2
+                `,
+                [
+                    requestedAmount,
+                    lockedDeposit.user_id
+                ]
+            );
+
+
+            /*
+               Existing FIRST DEPOSIT referral system
+               is preserved exactly:
+
+               Direct   = 10%
+               Indirect = 5%
+            */
+
+            let referralBonus = 0;
+
+
+            const firstDepositCheck =
+                await client.query(
+                    `
+                    SELECT COUNT(*) AS count
+                    FROM deposits
+                    WHERE user_id = $1
+                    AND status = 'approved'
+                    AND id <> $2
+                    `,
+                    [
+                        lockedDeposit.user_id,
+                        lockedDeposit.id
+                    ]
+                );
+
+
+            const approvedDepositCount =
+                Number(
+                    firstDepositCheck.rows[0].count || 0
+                );
+
+
+            if (
+                approvedDepositCount === 0
+            ) {
+
+                const userResult =
+                    await client.query(
+                        `
+                        SELECT
+                            referred_by
+                        FROM users
+                        WHERE id = $1
+                        `,
+                        [lockedDeposit.user_id]
+                    );
+
+
+                if (
+                    userResult.rows.length > 0 &&
+                    userResult.rows[0].referred_by
+                ) {
+
+                    const directReferrerId =
+                        Number(
+                            userResult.rows[0].referred_by
+                        );
+
+
+                    /*
+                       DIRECT REFERRER — 10%
+                    */
+
+                    const directBonus =
+                        Number(
+                            (
+                                requestedAmount *
+                                10 / 100
+                            ).toFixed(6)
+                        );
+
+
+                    await client.query(
+                        `
+                        UPDATE users
+                        SET balance = balance + $1
+                        WHERE id = $2
+                        `,
+                        [
+                            directBonus,
+                            directReferrerId
+                        ]
+                    );
+
+
+                    await client.query(
+                        `
+                        INSERT INTO referral_bonuses
+                        (
+                            referrer_id,
+                            referred_user_id,
+                            deposit_id,
+                            deposit_amount,
+                            bonus_percent,
+                            bonus_amount
+                        )
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4,
+                            10,
+                            $5
+                        )
+                        `,
+                        [
+                            directReferrerId,
+                            lockedDeposit.user_id,
+                            lockedDeposit.id,
+                            requestedAmount,
+                            directBonus
+                        ]
+                    );
+
+
+                    await client.query(
+                        `
+                        INSERT INTO earnings
+                        (
+                            user_id,
+                            type,
+                            source_id,
+                            description,
+                            amount
+                        )
+                        VALUES
+                        (
+                            $1,
+                            'referral_bonus',
+                            $2,
+                            $3,
+                            $4
+                        )
+                        `,
+                        [
+                            directReferrerId,
+                            lockedDeposit.id,
+                            "Direct team referral bonus",
+                            directBonus
+                        ]
+                    );
+
+
+                    /*
+                       INDIRECT REFERRER — 5%
+                    */
+
+                    const indirectResult =
+                        await client.query(
+                            `
+                            SELECT
+                                referred_by
+                            FROM users
+                            WHERE id = $1
+                            `,
+                            [directReferrerId]
+                        );
+
+
+                    if (
+                        indirectResult.rows.length > 0 &&
+                        indirectResult.rows[0].referred_by
+                    ) {
+
+                        const indirectReferrerId =
+                            Number(
+                                indirectResult.rows[0].referred_by
+                            );
+
+
+                        const indirectBonus =
+                            Number(
+                                (
+                                    requestedAmount *
+                                    5 / 100
+                                ).toFixed(6)
+                            );
+
+
+                        await client.query(
+                            `
+                            UPDATE users
+                            SET balance = balance + $1
+                            WHERE id = $2
+                            `,
+                            [
+                                indirectBonus,
+                                indirectReferrerId
+                            ]
+                        );
+
+
+                        await client.query(
+                            `
+                            INSERT INTO earnings
+                            (
+                                user_id,
+                                type,
+                                source_id,
+                                description,
+                                amount
+                            )
+                            VALUES
+                            (
+                                $1,
+                                'referral_bonus',
+                                $2,
+                                $3,
+                                $4
+                            )
+                            `,
+                            [
+                                indirectReferrerId,
+                                lockedDeposit.id,
+                                "Indirect team referral bonus",
+                                indirectBonus
+                            ]
+                        );
+                    }
+
+
+                    referralBonus =
+                        directBonus;
+                }
+            }
+
+
+            /*
+               Everything succeeded.
+            */
+
+            await client.query(
+                "COMMIT"
+            );
+
+
+            res.json({
+
+                success: true,
+
+                approved: true,
+
+                status:
+                    "approved",
+
+                message:
+                    "BEP20 deposit verified and approved automatically.",
+
+                depositId:
+                    lockedDeposit.id,
+
+                amount:
+                    requestedAmount,
+
+                referralBonus,
+
+                verification
+
+            });
+
+
+        } catch (error) {
+
+            try {
+                await client.query(
+                    "ROLLBACK"
+                );
+            } catch (_) {}
+
+
+            console.error(
+                "BEP20 AUTO APPROVAL ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to automatically approve BEP20 deposit."
+            });
+
+
+        } finally {
+
+            client.release();
+        }
+    }
 );
-
-
 /* =====================================================
    ADMIN DEPOSITS
 ===================================================== */
@@ -5481,6 +7169,220 @@ app.post(
     }
 );
 /* =====================================================
+   ADMIN DEDUCT BALANCE
+===================================================== */
+app.post(
+    "/api/admin/deduct-balance",
+    requireAdmin,
+    async (req, res) => {
+
+        const client = await db.pool.connect();
+
+        try {
+
+            const email =
+                normalizeEmail(
+                    req.body.email
+                );
+
+            const amount =
+                Number(
+                    req.body.amount
+                );
+
+            const comment =
+                String(
+                    req.body.comment || ""
+                ).trim();
+
+
+            if (!email) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "User email is required."
+                });
+
+            }
+
+
+            if (
+                !Number.isFinite(amount) ||
+                amount <= 0
+            ) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Deduction amount must be greater than zero."
+                });
+
+            }
+
+
+            if (!comment) {
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Deduction reason is required."
+                });
+
+            }
+
+
+            await client.query("BEGIN");
+
+
+            const userResult =
+                await client.query(
+                    `
+                    SELECT
+                        id,
+                        email,
+                        balance
+                    FROM users
+                    WHERE LOWER(email) = LOWER($1)
+                    FOR UPDATE
+                    `,
+                    [email]
+                );
+
+
+            if (
+                userResult.rows.length === 0
+            ) {
+
+                await client.query("ROLLBACK");
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "User not found with this email."
+                });
+
+            }
+
+
+            const user =
+                userResult.rows[0];
+
+            const currentBalance =
+                Number(user.balance || 0);
+
+
+            if (
+                currentBalance < amount
+            ) {
+
+                await client.query("ROLLBACK");
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        `Insufficient balance. Current balance is $${currentBalance.toFixed(2)}.`
+                });
+
+            }
+
+
+            const newBalance =
+                currentBalance - amount;
+
+
+            await client.query(
+                `
+                UPDATE users
+                SET balance = balance - $1
+                WHERE id = $2
+                `,
+                [
+                    amount,
+                    user.id
+                ]
+            );
+
+
+            await client.query(
+                `
+                INSERT INTO earnings
+                (
+                    user_id,
+                    amount,
+                    type,
+                    description,
+                    created_at
+                )
+                VALUES
+                (
+                    $1,
+                    $2,
+                    'admin_deduction',
+                    $3,
+                    NOW()
+                )
+                `,
+                [
+                    user.id,
+                    -amount,
+                    comment
+                ]
+            );
+
+
+            await client.query("COMMIT");
+
+
+            res.json({
+
+                success: true,
+
+                message:
+                    `Balance of $${amount.toFixed(2)} deducted successfully.`,
+
+                newBalance:
+                    newBalance
+
+            });
+
+
+        } catch (error) {
+
+            try {
+                await client.query("ROLLBACK");
+            } catch (rollbackError) {
+                console.error(
+                    "ADMIN DEDUCTION ROLLBACK ERROR:",
+                    rollbackError
+                );
+            }
+
+
+            console.error(
+                "ADMIN DEDUCTION ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to deduct balance."
+            });
+
+
+        } finally {
+
+            client.release();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
    ADMIN PAYMENT ADDRESSES
 ===================================================== */
 
@@ -6106,3 +8008,5 @@ async function startServer() {
 
 
 startServer();
+
+
