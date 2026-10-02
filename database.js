@@ -301,7 +301,6 @@ await query(`
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `);
-
     await query(`
         CREATE INDEX IF NOT EXISTS idx_nfts_status
         ON nfts(status);
@@ -338,6 +337,24 @@ await query(`
     `);
 
 
+    await query(`
+        CREATE TABLE IF NOT EXISTS promotional_rewards (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            reward_level INTEGER NOT NULL,
+            reward_amount NUMERIC NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(user_id, reward_level)
+        );
+    `);
+
+
+    await query(`
+        CREATE INDEX IF NOT EXISTS idx_promotional_rewards_user_id
+        ON promotional_rewards(user_id);
+    `);
+
+
     console.log("Meta NFT PostgreSQL database is ready.");
     console.log("Existing user data has been preserved.");
 }
@@ -363,3 +380,4 @@ module.exports = {
     pool,
     ready
 };
+
