@@ -1997,6 +1997,8 @@ app.get(
                     SELECT COUNT(*) AS count
                     FROM users u
                     WHERE u.referred_by = $1
+                    AND u.balance >= 30
+                    AND u.is_blocked = FALSE
                     AND EXISTS (
                         SELECT 1
                         FROM deposits d
@@ -2119,6 +2121,8 @@ app.post(
                     SELECT COUNT(*) AS count
                     FROM users u
                     WHERE u.referred_by = $1
+                    AND u.balance >= 30
+                    AND u.is_blocked = FALSE
                     AND EXISTS (
                         SELECT 1
                         FROM deposits d
