@@ -833,6 +833,96 @@ th{
 
 </div>
 <!-- ==================================================
+     DEDUCT BALANCE
+================================================== -->
+
+<div class="card">
+
+    <div class="section-head">
+
+        <div>
+            <h2 class="section-title">
+                Deduct Balance
+            </h2>
+
+            <p class="section-sub">
+                Deduct balance from a registered user and record the reason in their history.
+            </p>
+        </div>
+
+    </div>
+
+
+    <form id="deductBalanceForm">
+
+        <div class="nft-form-grid">
+
+            <div class="field">
+
+                <label>
+                    User Email
+                </label>
+
+                <input
+                    id="deductEmail"
+                    type="email"
+                    placeholder="user@example.com"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Deduction Amount (USDT)
+                </label>
+
+                <input
+                    id="deductAmount"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="10"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field full">
+
+                <label>
+                    Comment / Reason
+                </label>
+
+                <textarea
+                    id="deductComment"
+                    rows="3"
+                    placeholder="Enter reason for balance deduction..."
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <div class="full">
+
+                <button
+                    class="primary"
+                    type="submit">
+                    Deduct Balance
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+<!-- ==================================================
      LANDING PAGE NFT MANAGEMENT
 ================================================== -->
 
@@ -2680,6 +2770,85 @@ $("bonusForm").addEventListener(
 
     }
 );
+$("deductBalanceForm").addEventListener(
+    "submit",
+    async function(event){
+
+        event.preventDefault();
+
+        try{
+
+            const email =
+                $("deductEmail").value.trim();
+
+            const amount =
+                $("deductAmount").value;
+
+            const comment =
+                $("deductComment").value.trim();
+
+
+            const response =
+                await fetch(
+                    "/api/admin/deduct-balance",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:JSON.stringify({
+                            email:email,
+                            amount:amount,
+                            comment:comment
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if(!response.ok){
+
+                throw new Error(
+                    data.message ||
+                    "Unable to deduct balance."
+                );
+
+            }
+
+
+            showMessage(
+                data.message ||
+                "Balance deducted successfully."
+            );
+
+
+            $("deductBalanceForm").reset();
+
+
+        }catch(error){
+
+            console.error(
+                "DEDUCT BALANCE ERROR:",
+                error
+            );
+
+
+            showMessage(
+                error.message ||
+                "Unable to deduct balance.",
+                "error"
+            );
+
+        }
+
+    }
+);
 /* =====================================================
    NFT RENDER
 ===================================================== */
@@ -3488,7 +3657,4 @@ $("landingNFTForm").addEventListener(
 </body>
 </html>
 
-</script>
 
-</body>
-</html>
