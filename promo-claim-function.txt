@@ -1,0 +1,14 @@
+﻿async function claimPromotionalReward(members){
+    try{
+        const response=await api("/api/promotional-rewards/"+encodeURIComponent(members)+"/claim",{method:"POST"});
+        if(!response||!response.success){
+            throw new Error(response?.message||"Unable to claim reward.");
+        }
+        showToast(response.message||"Promotional reward claimed successfully.","success");
+        await loadPromotionalRewards();
+        if(typeof loadDashboard==="function")await loadDashboard();
+    }catch(error){
+        console.error("PROMOTIONAL REWARD CLAIM ERROR:",error);
+        showToast(error.message||"Unable to claim promotional reward.","error");
+    }
+}

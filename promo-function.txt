@@ -1,0 +1,41 @@
+﻿async function loadPromotionalRewards(){
+    const container=document.getElementById("promotionalRewardsList");
+    if(!container)return;
+    container.innerHTML='<div class="promo-loading">Loading rewards...</div>';
+    try{
+        const data=await api("/api/promotional-rewards");
+        if(!data||!data.success)throw new Error(data?.message||"Unable to load rewards.");
+        const validMembers=Number(data.validMembers||0);
+        const balanceEl=document.getElementById("promoBalance");
+        const membersEl=document.getElementById("promoValidMembers");
+        const nextRewardEl=document.getElementById("promoNextReward");
+        if(balanceEl)balanceEl.textContent=money(Number(currentUser?.balance||0));
+        if(membersEl)membersEl.textContent=validMembers;
+        const next=data.rewards?.find(r=>!r.claimed&&validMembers<Number(r.members));
+        if(nextRewardEl)nextRewardEl.textContent=next?"$"+Number(next.amount).toFixed(2):"All Unlocked";
+        let html="";
+        (data.rewards||[]).forEach(reward=>{
+            const members=Number(reward.members||0);
+            const amount=Number(reward.amount||0);
+            const progress=members?Math.min(100,validMembers/members*100):0;
+            let status="";
+            let button="";
+            if(reward.claimed){
+                status="✓ Claimed";
+                button='<button class="promo-claim-btn claimed" type="button" disabled>✓ Claimed</button>';
+            }else if(reward.unlocked){
+                status="Unlocked";
+                button='<button class="promo-claim-btn unlocked" type="button" onclick="claimPromotionalReward('+members+')">Claim $'+amount.toFixed(2)+'</button>';
+            }else{
+                const remaining=Math.max(0,members-validMembers);
+                status=remaining+" more valid member"+(remaining===1?"":"s");
+                button='<button class="promo-claim-btn locked" type="button" disabled>Locked</button>';
+            }
+            html+='<div class="promo-reward-row"><div class="promo-members">'+members+'<span>Valid Members</span></div><div class="promo-progress-wrap"><div class="promo-progress-text"><span>'+status+'</span><strong>'+validMembers+'/'+members+'</strong></div><div class="promo-fuel"><div class="promo-fuel-fill" style="width:'+progress+'%"></div></div></div><div class="promo-reward-amount">$'+amount.toFixed(2)+'</div><div>'+button+'</div></div>';
+        });
+        container.innerHTML=html||'<div class="promo-loading">No reward levels available.</div>';
+    }catch(error){
+        console.error("PROMOTIONAL REWARDS LOAD ERROR:",error);
+        container.innerHTML='<div class="promo-loading">Unable to load promotional rewards.</div>';
+    }
+}

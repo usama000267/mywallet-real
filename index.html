@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1508,7 +1508,9 @@ tbody tr:hover td{
     );
     border:1px solid rgba(124,58,237,.12);
 }
-
+.profile-change-password-panel{
+    display:none !important;
+}
 .profile-password-security-icon{
     width:46px;
     height:46px;
@@ -4581,7 +4583,7 @@ pointer-events:auto !important;
 
     <label>Email Verification OTP</label>
 
-    <div style="display:flex; gap:10px;">
+    <div style="display:grid !important; grid-template-columns:minmax(0, 1fr) 35% !important; gap:10px !important; width:100% !important; align-items:stretch !important;">
 
         <input
             id="withdrawOtp"
@@ -4590,6 +4592,7 @@ pointer-events:auto !important;
             inputmode="numeric"
             maxlength="6"
             placeholder="Enter 6-digit OTP"
+            style="width:100% !important; height:56px !important; box-sizing:border-box !important;"
         >
 
         <button
@@ -4597,6 +4600,7 @@ pointer-events:auto !important;
             class="btn btn-secondary"
             id="sendWithdrawOtpBtn"
             onclick="sendWithdrawOTP()"
+            style="width:100% !important; height:56px !important; box-sizing:border-box !important;"
         >
             Send OTP
         </button>
@@ -4613,7 +4617,6 @@ pointer-events:auto !important;
     ></div>
 
 </div>
-
                         <button class="btn btn-primary" type="submit">
                             Submit Withdrawal
                         </button>
@@ -4985,6 +4988,15 @@ pointer-events:auto !important;
 
                 </div>
 
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+<!-- ================= PROFILE CHANGE PASSWORD PANEL ================= -->
+
 <div id="profileChangePasswordPanel" class="profile-change-password-panel" style="display:none;">
 
     <div class="profile-password-panel-head">
@@ -5265,15 +5277,6 @@ pointer-events:auto !important;
 
 </div>
 <!-- ================= END PROFILE CHANGE PASSWORD PANEL ================= -->
-            </section>
-
-        </div>
-
-    </main>
-
-</div>
-<!-- ================= PROFILE CHANGE PASSWORD PANEL ================= -->
-
 <!-- ================= MOBILE NAV ================= -->
 <div id="mobileNav" class="mobile-nav app-only">
 
@@ -11628,7 +11631,7 @@ Tawk_API.onLoad = function(){
     height:24px !important;
     color:currentColor !important;
 }
-.mobile-nav button > span svg{`r`n    color:#7b8190 !important;
+.mobile-nav button > span svg{   color:#7b8190 !important;
     width:22px !important;
     height:22px !important;
     display:block !important;
@@ -11649,5 +11652,90 @@ Tawk_API.onLoad = function(){
     stroke-width:2 !important;
     stroke-linecap:round !important;
     stroke-linejoin:round !important;
+}
+/* WITHDRAW OTP INPUT SIZE FIX */
+#withdrawOtp,
+#withdrawOTP,
+input[name="otp"] {
+    width: 100% !important;
+    min-height: 56px !important;
+    height: 56px !important;
+    box-sizing: border-box !important;
+    padding: 0 18px !important;
+    font-size: 18px !important;
+    border: 1px solid #dbe3ef !important;
+    border-radius: 14px !important;
+}
+/* PREMIUM SEND OTP BUTTON */
+#sendWithdrawOtpBtn{
+    background:linear-gradient(135deg,#7c3aed 0%,#2563eb 50%,#06b6d4 100%) !important;
+    color:#ffffff !important;
+    border:1px solid rgba(255,255,255,.45) !important;
+    border-radius:16px !important;
+    font-size:16px !important;
+    font-weight:800 !important;
+    letter-spacing:.3px !important;
+    box-shadow:
+        0 8px 24px rgba(37,99,235,.28),
+        0 0 18px rgba(124,58,237,.20) !important;
+    text-shadow:0 1px 2px rgba(0,0,0,.15);
+    cursor:pointer !important;
+    transition:all .25s ease !important;
+}
+
+#sendWithdrawOtpBtn:hover{
+    transform:translateY(-2px) !important;
+    box-shadow:
+        0 12px 30px rgba(37,99,235,.38),
+        0 0 24px rgba(124,58,237,.30) !important;
+    filter:brightness(1.08);
+}
+
+#sendWithdrawOtpBtn:active{
+    transform:translateY(0) scale(.98) !important;
+}
+/* PREMIUM WITHDRAW SEND OTP BUTTON */
+#sendWithdrawOtpBtn{
+    width:100% !important;
+    min-height:58px !important;
+    border:none !important;
+    border-radius:18px !important;
+    padding:0 28px !important;
+
+    background:linear-gradient(
+        135deg,
+        #6d4aff 0%,
+        #8b3dff 35%,
+        #00bcd4 100%
+    ) !important;
+
+    color:#ffffff !important;
+    font-size:18px !important;
+    font-weight:900 !important;
+    letter-spacing:.3px !important;
+
+    box-shadow:
+        0 10px 25px rgba(109,74,255,.28),
+        0 5px 14px rgba(0,188,212,.20) !important;
+
+    cursor:pointer !important;
+    transition:all .25s ease !important;
+}
+
+#sendWithdrawOtpBtn:hover{
+    transform:translateY(-2px) !important;
+    box-shadow:
+        0 14px 32px rgba(109,74,255,.35),
+        0 7px 18px rgba(0,188,212,.28) !important;
+}
+
+#sendWithdrawOtpBtn:active{
+    transform:scale(.97) !important;
+}
+
+#sendWithdrawOtpBtn:disabled{
+    opacity:.65 !important;
+    cursor:not-allowed !important;
+    transform:none !important;
 }
 </style>

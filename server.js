@@ -1,4 +1,4 @@
-
+﻿
 
 require("dotenv").config({
     path: require("path").join(__dirname, ".env")
@@ -22,6 +22,30 @@ const {
     verifyBEP20Transaction
 } = require("./bep20-verifier");
 const app = express();
+/* =========================================================
+   WHATSAPP WEBHOOK CONFIG
+========================================================= */
+
+const WHATSAPP_VERIFY_TOKEN =
+    process.env.WHATSAPP_VERIFY_TOKEN || "";
+    /* =========================================================
+   WHATSAPP WEBHOOK VERIFICATION
+========================================================= */
+
+app.get("/webhook", (req, res) => {
+    const mode = req.query["hub.mode"];
+    const token = req.query["hub.verify_token"];
+    const challenge = req.query["hub.challenge"];
+
+    if (
+        mode === "subscribe" &&
+        token === WHATSAPP_VERIFY_TOKEN
+    ) {
+        return res.status(200).send(challenge);
+    }
+
+    return res.sendStatus(403);
+});
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,

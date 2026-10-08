@@ -4355,15 +4355,12 @@ async function loadReferral(){
     }
 
 }
-
-
 async function copyReferralLink(){
 
     const input =
         document.getElementById("referralLink");
 
-
-    if(!input.value){
+    if(!input || !input.value){
 
         showToast(
             "Referral link is not available.",
@@ -4373,32 +4370,68 @@ async function copyReferralLink(){
         return;
     }
 
+    const value = input.value.trim();
 
     try{
 
-        await navigator.clipboard.writeText(input.value);
+        if(
+            navigator.clipboard &&
+            window.isSecureContext
+        ){
+
+            await navigator.clipboard.writeText(value);
+
+        }else{
+
+            const temp =
+                document.createElement("textarea");
+
+            temp.value = value;
+
+            temp.setAttribute("readonly", "");
+
+            temp.style.position = "fixed";
+            temp.style.left = "-9999px";
+            temp.style.top = "0";
+            temp.style.opacity = "0";
+
+            document.body.appendChild(temp);
+
+            temp.focus();
+            temp.select();
+            temp.setSelectionRange(0, value.length);
+
+            const copied =
+                document.execCommand("copy");
+
+            document.body.removeChild(temp);
+
+            if(!copied){
+
+                throw new Error("Copy failed");
+            }
+        }
 
         showToast(
-            "Referral link copied.",
+            "Referral link copied successfully.",
             "success"
         );
 
-    }catch{
+    }catch(error){
 
-        input.select();
-
-        document.execCommand("copy");
+        console.error(
+            "REFERRAL COPY ERROR:",
+            error
+        );
 
         showToast(
-            "Referral link copied.",
-            "success"
+            "Copy failed. Please tap and hold the link to copy it.",
+            "error"
         );
 
     }
 
 }
-
-
 /* =========================================================
    LOGOUT
 ========================================================= */

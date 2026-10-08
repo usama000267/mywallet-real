@@ -1,0 +1,279 @@
+<div id="profileChangePasswordPanel" class="profile-change-password-panel" style="display:none;">
+
+    <div class="profile-password-panel-head">
+        <button
+            type="button"
+            class="profile-password-back"
+            onclick="closeChangePassword()"
+            aria-label="Back"
+        >
+            ?
+        </button>
+
+        <div>
+            <div class="profile-password-panel-title">
+                Change Password
+            </div>
+
+            <div class="profile-password-panel-subtitle">
+                Secure your Meta NFT account with a new password
+            </div>
+        </div>
+    </div>
+
+
+    <div class="profile-password-security">
+
+        <div class="profile-password-security-icon">
+            ???
+        </div>
+
+        <div>
+            <strong>Email Verification Required</strong>
+
+            <small>
+                We'll send a secure 6-digit verification code to your registered email.
+            </small>
+        </div>
+
+    </div>
+
+
+    <!-- STEP 1 : SEND OTP -->
+
+    <div id="profilePasswordOtpStep1" class="profile-password-step">
+
+        <div class="profile-password-step-badge">
+            <span>01</span>
+            <div>
+                <strong>Verify your email</strong>
+                <small>Get a verification code on your registered email</small>
+            </div>
+        </div>
+
+
+        <div class="profile-password-email-card">
+
+            <div class="profile-password-email-icon">
+                ??
+            </div>
+
+            <div>
+                <span>Registered Email</span>
+                <strong id="profilePasswordEmail">
+                    Loading...
+                </strong>
+            </div>
+
+        </div>
+
+        <div id="forgotPasswordEmailInputWrap" style="display:none;margin-top:14px;">
+            <label style="display:block;margin-bottom:7px;font-size:12px;font-weight:700;color:#475569;">Registered Email</label>
+            <input
+                type="email"
+                id="forgotPasswordEmailInput"
+                placeholder="Enter your registered email"
+                autocomplete="email"
+                style="width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #dbe3ef;border-radius:12px;font-size:14px;outline:none;"
+            >
+        </div>
+
+
+        <button
+            type="button"
+            id="profilePasswordSendOtpBtn"
+            class="profile-password-save-btn"
+            onclick="sendProfilePasswordOTP()"
+        >
+            <span>•</span>
+            Get OTP
+        </button>
+
+    </div>
+
+
+    <!-- STEP 2 : VERIFY OTP -->
+
+    <div
+        id="profilePasswordOtpStep2"
+        class="profile-password-step"
+        style="display:none;"
+    >
+
+        <div class="profile-password-step-badge">
+            <span>02</span>
+            <div>
+                <strong>Enter verification code</strong>
+                <small>Check your registered email for the 6-digit OTP</small>
+            </div>
+        </div>
+
+
+        <div class="profile-password-otp-wrap">
+
+            <input
+                type="text"
+                id="profilePasswordOTP"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="one-time-code"
+                placeholder="••••••"
+            >
+
+        </div>
+
+
+        <div class="profile-password-otp-hint">
+            <span>Didn't receive the code?</span>
+
+            <button
+                type="button"
+                id="profilePasswordResendBtn"
+                onclick="sendProfilePasswordOTP()"
+            >
+                Resend OTP
+            </button>
+        </div>
+
+
+        <button
+            type="button"
+            id="profilePasswordVerifyBtn"
+            class="profile-password-save-btn"
+            onclick="verifyProfilePasswordOTP()"
+        >
+            <span>•</span>
+            Verify OTP
+        </button>
+
+    </div>
+
+
+    <!-- STEP 3 : NEW PASSWORD -->
+
+    <div
+        id="profilePasswordOtpStep3"
+        class="profile-password-step"
+        style="display:none;"
+    >
+
+        <div class="profile-password-step-badge">
+            <span>03</span>
+            <div>
+                <strong>Create new password</strong>
+                <small>Choose a strong password for your account</small>
+            </div>
+        </div>
+
+
+        <div class="profile-password-field">
+
+            <label for="profileNewPassword">
+                New Password
+            </label>
+
+            <div class="profile-password-input-wrap">
+
+                <input
+                    type="password"
+                    id="profileNewPassword"
+                    placeholder="Enter new password"
+                    autocomplete="new-password"
+                >
+
+                <button
+                    type="button"
+                    onclick="toggleProfilePassword('profileNewPassword', this)"
+                    aria-label="Show password"
+                >
+                    ??
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="profile-password-field">
+
+            <label for="profileConfirmPassword">
+                Confirm Password
+            </label>
+
+            <div class="profile-password-input-wrap">
+
+                <input
+                    type="password"
+                    id="profileConfirmPassword"
+                    placeholder="Confirm new password"
+                    autocomplete="new-password"
+                >
+
+                <button
+                    type="button"
+                    onclick="toggleProfilePassword('profileConfirmPassword', this)"
+                    aria-label="Show password"
+                >
+                    ??
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="profile-password-strength">
+
+            <div class="profile-password-strength-bar">
+                <span id="profilePasswordStrengthBar"></span>
+            </div>
+
+            <small id="profilePasswordStrengthText">
+                Password strength
+            </small>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="profilePasswordChangeBtn"
+            class="profile-password-save-btn"
+            onclick="submitProfilePasswordChange()"
+        >
+            <span>•</span>
+            Change Password
+        </button>
+
+    </div>
+
+
+    <!-- SUCCESS -->
+
+    <div
+        id="profilePasswordSuccess"
+        class="profile-password-success"
+        style="display:none;"
+    >
+
+        <div class="profile-password-success-icon">
+            ?
+        </div>
+
+        <h3>Password Changed Successfully</h3>
+
+        <p>
+            Your Meta NFT account password has been updated successfully.
+        </p>
+
+        <button
+            type="button"
+            class="profile-password-save-btn"
+            onclick="closeChangePassword()"
+        >
+            Done
+        </button>
+
+    </div>
+
+</div>
