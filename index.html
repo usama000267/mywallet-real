@@ -4634,8 +4634,58 @@ pointer-events:auto !important;
 
                 </div>
 
-            </section>
+<!-- PREMIUM WITHDRAWAL HISTORY -->
+                <div class="withdraw-history-card">
 
+                    <div class="withdraw-history-heading">
+                        <div>
+                            <div class="withdraw-history-eyebrow">
+                                ACCOUNT ACTIVITY
+                            </div>
+                            <h3>Withdrawal History</h3>
+                            <p>Your recent withdrawal requests and payout status</p>
+                        </div>
+
+                        <button
+                            type="button"
+                            class="withdraw-history-refresh"
+                            onclick="loadWithdrawalHistory()"
+                            aria-label="Refresh withdrawal history"
+                        >
+                            ↻ Refresh
+                        </button>
+                    </div>
+
+                    <div class="withdraw-history-table-wrap">
+                        <table class="withdraw-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Network</th>
+                                    <th>Wallet Address</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="withdrawalHistoryBody">
+                                <tr>
+                                    <td colspan="5" class="withdraw-history-message">
+                                        Loading withdrawal history...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="withdraw-history-footer">
+                        <span class="withdraw-history-live-dot"></span>
+                        Your withdrawal activity
+                    </div>
+
+                </div>
+                <!-- END PREMIUM WITHDRAWAL HISTORY -->
+            </section>
 
             <!-- ================= HISTORY ================= -->
 
@@ -6167,11 +6217,16 @@ function openPage(page){
         loadMyNFTs();
     }
 
-    if(page === "sell"){
-        loadSellNFTs();
-        loadSellHistoryRecords();
-    }
-        loadHistory();
+   if(page === "sell"){
+    loadSellNFTs();
+    loadSellHistoryRecords();
+}
+
+if(page === "withdraw"){
+    loadWithdrawalHistory();
+}
+
+loadHistory();
 
     if(page === "promotional-reward"){loadPromotionalRewards();}
 
@@ -9879,6 +9934,113 @@ function startRegistrationOtpTimer(){
     </div>
 
 </div>
+<script>
+async function loadWithdrawalHistory() {
+    const tbody = document.getElementById("withdrawalHistoryBody");
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="5" class="withdraw-history-message">
+                Loading withdrawal history...
+            </td>
+        </tr>
+    `;
+
+    try {
+        const data = await api("/api/history");
+        const withdrawals = Array.isArray(data.withdrawals)
+            ? data.withdrawals
+            : [];
+
+        if (withdrawals.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="withdraw-history-message">
+                        No withdrawal requests yet.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = "";
+
+        withdrawals.forEach(item => {
+            const tr = document.createElement("tr");
+            const status = String(item.status || "pending").toLowerCase();
+
+            let statusClass = "withdraw-status-pending";
+
+            if (["approved", "completed", "success", "paid"].includes(status)) {
+                statusClass = "withdraw-status-approved";
+            } else if (["rejected", "declined", "failed"].includes(status)) {
+                statusClass = "withdraw-status-rejected";
+            }
+
+            const date = item.created_at
+                ? new Date(item.created_at).toLocaleString()
+                : "-";
+
+            const amount = Number(item.amount || 0).toLocaleString(
+                undefined,
+                { minimumFractionDigits: 2, maximumFractionDigits: 6 }
+            );
+
+            const values = [
+                date,
+                amount + " USDT",
+                item.network || "-",
+                item.wallet_address || "-",
+                status.replace(/[_-]+/g, " ")
+                    .replace(/\b\w/g, char => char.toUpperCase())
+            ];
+
+            values.forEach((value, index) => {
+                const td = document.createElement("td");
+
+                if (index === 1) {
+                    td.className = "withdraw-history-amount";
+                    td.textContent = value;
+                } else if (index === 2) {
+                    const badge = document.createElement("span");
+                    badge.className = "withdraw-history-network";
+                    badge.textContent = value;
+                    td.appendChild(badge);
+                } else if (index === 3) {
+                    const address = document.createElement("span");
+                    address.className = "withdraw-history-wallet";
+                    address.title = String(value);
+                    address.textContent = value;
+                    td.appendChild(address);
+                } else if (index === 4) {
+                    const badge = document.createElement("span");
+                    badge.className = "withdraw-history-status " + statusClass;
+                    badge.textContent = value;
+                    td.appendChild(badge);
+                } else {
+                    td.textContent = value;
+                }
+
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Withdrawal history error:", error);
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="withdraw-history-message">
+                    Unable to load withdrawal history. Please refresh.
+                </td>
+            </tr>
+        `;
+    }
+}
+</script>
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
 var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -11799,5 +11961,236 @@ input[name="otp"] {
     opacity:.65 !important;
     cursor:not-allowed !important;
     transform:none !important;
+}
+</style>
+<style>
+/* META NFT — PREMIUM WITHDRAWAL HISTORY */
+#page-withdraw .withdraw-history-card {
+    margin-top: 24px;
+    padding: 24px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ffffff 0%, #f8faff 100%);
+    border: 1px solid #e7eaf3;
+    border-radius: 22px;
+    box-shadow: 0 12px 35px rgba(20, 35, 80, 0.07);
+}
+
+#page-withdraw .withdraw-history-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+#page-withdraw .withdraw-history-eyebrow {
+    margin-bottom: 7px;
+    color: #6951d5;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: 1.7px;
+}
+
+#page-withdraw .withdraw-history-heading h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 22px;
+    font-weight: 850;
+    letter-spacing: -0.6px;
+}
+
+#page-withdraw .withdraw-history-heading p {
+    margin: 7px 0 0;
+    color: #7a8498;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+#page-withdraw .withdraw-history-refresh {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    color: #5541c8;
+    background: #f0edff;
+    border: 1px solid #e0d9ff;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease;
+}
+
+#page-withdraw .withdraw-history-refresh:hover {
+    background: #e7e1ff;
+    transform: translateY(-1px);
+}
+
+#page-withdraw .withdraw-history-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e9edf5;
+    border-radius: 15px;
+    -webkit-overflow-scrolling: touch;
+}
+
+#page-withdraw .withdraw-history-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+#page-withdraw .withdraw-history-table th {
+    padding: 15px 16px;
+    color: #798399;
+    background: #f7f8fc;
+    border-bottom: 1px solid #e9edf5;
+    font-size: 10px;
+    font-weight: 850;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#page-withdraw .withdraw-history-table td {
+    padding: 17px 16px;
+    color: #303b50;
+    background: #fff;
+    border-bottom: 1px solid #f0f2f7;
+    font-size: 12px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+#page-withdraw .withdraw-history-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#page-withdraw .withdraw-history-table tbody tr:hover td {
+    background: #fafaff;
+}
+
+#page-withdraw .withdraw-history-amount {
+    color: #192b49 !important;
+    font-size: 14px !important;
+    font-weight: 900 !important;
+}
+
+#page-withdraw .withdraw-history-network {
+    display: inline-flex;
+    padding: 6px 9px;
+    color: #4f46b8;
+    background: #f0efff;
+    border: 1px solid #e3e0ff;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 850;
+}
+
+#page-withdraw .withdraw-history-wallet {
+    display: inline-block;
+    max-width: 190px;
+    overflow: hidden;
+    color: #64748b;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+#page-withdraw .withdraw-history-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 850;
+    text-transform: capitalize;
+}
+
+#page-withdraw .withdraw-history-status::before {
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    border-radius: 50%;
+    content: "";
+}
+
+#page-withdraw .withdraw-status-pending {
+    color: #a16207;
+    background: #fff8df;
+    border-color: #f9e8a7;
+}
+
+#page-withdraw .withdraw-status-approved {
+    color: #087c52;
+    background: #e8fbf2;
+    border-color: #b9efd5;
+}
+
+#page-withdraw .withdraw-status-rejected {
+    color: #c13248;
+    background: #fff0f2;
+    border-color: #ffd5dc;
+}
+
+#page-withdraw .withdraw-history-message {
+    padding: 28px 16px !important;
+    color: #7a8498 !important;
+    text-align: center;
+    font-weight: 600 !important;
+}
+
+#page-withdraw .withdraw-history-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    color: #8791a4;
+    font-size: 11px;
+    font-weight: 650;
+}
+
+#page-withdraw .withdraw-history-live-dot {
+    width: 7px;
+    height: 7px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, .10);
+}
+
+@media (max-width: 600px) {
+    #page-withdraw .withdraw-history-card {
+        margin-top: 18px;
+        padding: 17px 12px;
+        border-radius: 18px;
+    }
+
+    #page-withdraw .withdraw-history-heading {
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    #page-withdraw .withdraw-history-heading h3 {
+        font-size: 19px;
+    }
+
+    #page-withdraw .withdraw-history-heading p {
+        max-width: 220px;
+        font-size: 11px;
+    }
+
+    #page-withdraw .withdraw-history-refresh {
+        padding: 9px 10px;
+        font-size: 11px;
+    }
+
+    #page-withdraw .withdraw-history-table th,
+    #page-withdraw .withdraw-history-table td {
+        padding: 13px 12px;
+    }
 }
 </style>
