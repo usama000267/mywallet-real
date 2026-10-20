@@ -2122,94 +2122,61 @@ async function allowUser(id){
     }
 }
 
-
 /* =====================================================
    DEPOSITS
 ===================================================== */
 
 function renderDeposits(items){
 
-    const table =
-        $("depositTable");
+    const table = $("depositTable");
 
     if(!items.length){
-
-        table.innerHTML =
-            `<tr>
+        table.innerHTML = `
+            <tr>
                 <td colspan="8" class="empty">
                     No deposit requests.
                 </td>
-            </tr>`;
-
+            </tr>
+        `;
         return;
     }
 
+    table.innerHTML = items.map(item => {
 
-    table.innerHTML =
-        items.map(item => {
+        let action = "-";
 
-            let action = "-";
+        if(item.status === "pending"){
+            action = `
+                <div class="actions">
+                    <button
+                        class="btn btn-green"
+                        onclick="approveDeposit(${Number(item.id)})">
+                        Approve
+                    </button>
 
-            if(item.status === "pending"){
-
-                action = `
-
-                    <div class="actions">
-
-                        <button
-                            class="btn btn-green"
-                            onclick="approveDeposit(${Number(item.id)})">
-                            Approve
-                        </button>
-
-                        <button
-                            class="btn btn-red"
-                            onclick="rejectDeposit(${Number(item.id)})">
-                            Reject
-                        </button>
-
-                    </div>
-
-                `;
-            }
-
-            return `
-
-                <tr>
-
-                    <td>${escapeHtml(item.id)}</td>
-
-                    <td>${escapeHtml(item.name)}</td>
-
-                    <td>${escapeHtml(item.email)}</td>
-
-                    <td>
-                        ${money(item.amount)}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(item.network)}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            item.tx_hash || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${statusHtml(item.status)}
-                    </td>
-
-                    <td>
-                        ${action}
-                    </td>
-
-                </tr>
-
+                    <button
+                        class="btn btn-red"
+                        onclick="rejectDeposit(${Number(item.id)})">
+                        Reject
+                    </button>
+                </div>
             `;
+        }
 
-        }).join("");
+        return `
+            <tr>
+                <td>${escapeHtml(item.id)}</td>
+                <td>${escapeHtml(item.name)}</td>
+                <td>${escapeHtml(item.email)}</td>
+                <td>${money(item.amount)}</td>
+                <td>${escapeHtml(item.network)}</td>
+                <td>${escapeHtml(item.tx_hash || "-")}</td>
+                <td>${statusHtml(item.status)}</td>
+                <td>${action}</td>
+            </tr>
+        `;
+
+    }).join("");
 }
 
 
@@ -2342,29 +2309,32 @@ function renderWithdrawals(items){
 
             let action = "-";
 
-            if(item.status === "pending"){
+           if(item.status === "pending"){
 
-                action = `
+    action = `
+        <div class="actions">
 
-                    <div class="actions">
+            <button
+                class="btn btn-green"
+                onclick="approveWithdrawal(${Number(item.id)})">
+                Approve
+            </button>
 
-                        <button
-                            class="btn btn-green"
-                            onclick="approveWithdrawal(${Number(item.id)})">
-                            Approve
-                        </button>
+            <button
+                class="btn btn-red"
+                onclick="rejectWithdrawal(${Number(item.id)})">
+                Reject
+            </button>
 
-                        <button
-                            class="btn btn-red"
-                            onclick="rejectWithdrawal(${Number(item.id)})">
-                            Reject
-                        </button>
+            <button
+                class="btn"
+                onclick="editWithdrawalAddress(${Number(item.id)})">
+                Edit Address
+            </button>
 
-                    </div>
-
-                `;
-            }
-
+        </div>
+    `;
+}
 
             return `
 
@@ -2384,11 +2354,13 @@ function renderWithdrawals(items){
                         ${escapeHtml(item.network)}
                     </td>
 
-                    <td style="max-width:220px;white-space:normal;word-break:break-all">
-                        ${escapeHtml(
-                            item.wallet_address || "-"
-                        )}
-                    </td>
+                   <td style="max-width:220px;white-space:normal;word-break:break-all">
+    ${escapeHtml(
+        item.effective_wallet_address ||
+        item.wallet_address ||
+        "-"
+    )}
+</td>
 
                     <td>
                         ${statusHtml(item.status)}
@@ -2405,11 +2377,101 @@ function renderWithdrawals(items){
         }).join("");
 }
 
+async function editWithdrawalAddress(id){
 
+    const newAddress = prompt(
+        "Enter the new wallet address:"
+    );
+
+    if(newAddress === null) return;
+
+    const walletAddress = newAddress.trim();
+
+    if(!walletAddress){
+        showMessage("Wallet address cannot be empty.", "error");
+        return;
+    }
+
+    if(!confirm("Save this new wallet address?")) return;
+
+    try{
+        const response = await fetch(
+            "/api/admin/withdrawals/" + id + "/address",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    wallet_address: walletAddress
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if(!response.ok){
+            throw new Error(
+                data.message || "Failed to update wallet address."
+            );
+        }
+
+        showMessage("Wallet address updated.");
+        await loadAll();
+
+    }catch(error){
+        showMessage(error.message, "error");
+    }
+}
 /* =====================================================
    APPROVE WITHDRAWAL
 ===================================================== */
 
+async function approveWithdrawal(id){
+
+    if(
+        !confirm(
+            "Approve this withdrawal?"
+        )
+    ) return;
+
+    try{
+
+        const response =
+            await fetch(
+                "/api/admin/withdrawals/" +
+                id +
+                "/approve",
+                {
+                    method:"POST"
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(!response.ok){
+
+            throw new Error(
+                data.message ||
+                "Withdrawal approval failed."
+            );
+        }
+
+        showMessage(
+            "Withdrawal approved."
+        );
+
+        await loadAll();
+
+    }catch(error){
+
+        showMessage(
+            error.message,
+            "error"
+        );
+    }
+}
 async function approveWithdrawal(id){
 
     if(

@@ -70,7 +70,16 @@ async function initDatabase() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `);
+await query(`
+        ALTER TABLE withdrawals
+        ADD COLUMN IF NOT EXISTS effective_wallet_address TEXT;
+    `);
 
+    await query(`
+        UPDATE withdrawals
+        SET effective_wallet_address = wallet_address
+        WHERE effective_wallet_address IS NULL;
+    `);
 
     await query(`
         CREATE TABLE IF NOT EXISTS reservations (

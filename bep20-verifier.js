@@ -1,46 +1,54 @@
-require("dotenv").config();
+﻿require("dotenv").config();
 
 const BSC_RPC =
     "https://bsc-dataseed.binance.org/";
 
 const REQUIRED_CONFIRMATIONS = 3;
 
-const BEP20_ADDRESS =
-    process.env.BEP20_USDT_ADDRESS.toLowerCase();
+const BEP20_ADDRESS = (process.env.BEP20_USDT_ADDRESS || "").trim().toLowerCase();
 
-const BSC_USDT_CONTRACT =
-    process.env.BSC_USDT_CONTRACT.toLowerCase();
+const BSC_USDT_CONTRACT = (process.env.BSC_USDT_CONTRACT || "").trim().toLowerCase();
+if (!/^0x[a-fA-F0-9]{40}$/.test(BEP20_ADDRESS)) {
+    throw new Error("BEP20_USDT_ADDRESS is missing or invalid.");
+}
+
+if (!/^0x[a-fA-F0-9]{40}$/.test(BSC_USDT_CONTRACT)) {
+    throw new Error("BSC_USDT_CONTRACT is missing or invalid.");
+}
 
 
-async function rpc(
-    method,
-    params = []
-) {
-
-    const response =
-        await fetch(BSC_RPC, {
-            method: "POST",
-            headers: {
-                "Content-Type":
-                    "application/json"
-            },
-            body: JSON.stringify({
-                jsonrpc: "2.0",
-                id: 1,
-                method,
-                params
-            })
-        });
+async function rpc(method, params = []) {
+    const response = await fetch(BSC_RPC, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method,
+            params
+        })
+    });
 
     if (!response.ok) {
+        throw new Error(`BSC RPC HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.error) {
         throw new Error(
-            `BSC RPC HTTP ${response.status}`
+            `BSC RPC error: ${data.error.message || "Unknown RPC error"}`
         );
     }
 
-    return response.json();
-}
+    if (!Object.prototype.hasOwnProperty.call(data, "result")) {
+        throw new Error("BSC RPC response is missing result.");
+    }
 
+    return data;
+}
 
 async function verifyBEP20Transaction(
     txHash,
@@ -134,20 +142,15 @@ async function verifyBEP20Transaction(
        selector = a9059cbb
     */
 
-    if (
-        !tx.input ||
-        !tx.input.startsWith(
-            "0xa9059cbb"
-        )
-    ) {
-
-        return {
-            valid: false,
-            reason:
-                "Transaction is not a USDT transfer."
-        };
-
-    }
+  if (
+    typeof tx.input !== "string" ||
+    !/^0xa9059cbb[0-9a-fA-F]{128}$/.test(tx.input)
+) {
+    return {
+        valid: false,
+        reason: "Invalid USDT transfer data."
+    };
+}
 
 
     /*
@@ -276,7 +279,52 @@ async function verifyBEP20Transaction(
         };
 
     }
+/*
+       Verify actual BEP20 Transfer event.
+    */
 
+    const TRANSFER_TOPIC =
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+    const matchingLog = (receipt.logs || []).find(log =>
+        log.address?.toLowerCase() === BSC_USDT_CONTRACT &&
+        log.topics?.[0]?.toLowerCase() === TRANSFER_TOPIC &&
+        log.topics?.length >= 3 &&
+        ("0x" + log.topics[2].slice(-40)).toLowerCase() === BEP20_ADDRESS &&
+        typeof log.data === "string" &&
+        /^0x[0-9a-fA-F]{64}$/.test(log.data)
+    );
+
+    if (!matchingLog) {
+        return {
+            valid: false,
+            reason: "Verified USDT Transfer event not found."
+        };
+    }
+
+    const eventSender =
+        "0x" + matchingLog.topics[1].slice(-40);
+
+    const eventRecipient =
+        "0x" + matchingLog.topics[2].slice(-40);
+
+    const eventRawAmount =
+        BigInt(matchingLog.data);
+
+    const eventAmount =
+        Number(eventRawAmount) / 1e18;
+
+    if (
+        eventSender.toLowerCase() !== tx.from.toLowerCase() ||
+        eventRecipient.toLowerCase() !== BEP20_ADDRESS ||
+        Math.abs(eventAmount - expectedAmount) >= 0.000001 ||
+        Math.abs(eventAmount - blockchainAmount) >= 0.000001
+    ) {
+        return {
+            valid: false,
+            reason: "USDT Transfer event details do not match."
+        };
+    }
 
     /*
        Check confirmations.

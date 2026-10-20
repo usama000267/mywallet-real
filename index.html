@@ -2239,6 +2239,15 @@ tbody tr:hover td{
     box-shadow:
         0 15px 35px rgba(220,38,38,.20);
 }
+.toast.info{
+    background:linear-gradient(
+        135deg,
+        #1d4ed8,
+        #2563eb
+    );
+    box-shadow:
+        0 15px 35px rgba(37,99,235,.20);
+}
 .app-only{
     display:none !important;
 }
@@ -7585,20 +7594,52 @@ document.getElementById("depositForm").addEventListener(
 
             }
 
+if (selectedDepositNetwork === "BEP20") {
 
-            showToast(
-                data.message ||
-                "Deposit request submitted successfully.",
-                "success"
-            );
+    if (!data.depositId) {
+        throw new Error(
+            "Deposit was submitted, but its ID was not returned. Please contact support before retrying."
+        );
+    }
 
+    const verifyData = await api(
+        `/api/deposits/${data.depositId}/auto-verify`,
+        {
+            method: "POST"
+        }
+    );
 
-            document.getElementById("depositAmount").value = "";
+    if (verifyData.success === false) {
+        throw new Error(
+            verifyData.message ||
+            "BEP20 verification request failed. Please check your deposit history before retrying."
+        );
+    }
 
-            document.getElementById("depositTxHash").value = "";
+   showToast(
+        verifyData.message ||
+        (
+            verifyData.approved
+                ? "BEP20 deposit verified and approved."
+                : "Deposit is pending admin review. It has not been rejected."
+        ),
+        verifyData.approved ? "success" : "info"
+    );
 
+} else {
 
-            await loadHistory();
+    showToast(
+        data.message ||
+        "Deposit request submitted successfully.",
+        "success"
+    );
+
+}
+
+document.getElementById("depositAmount").value = "";
+document.getElementById("depositTxHash").value = "";
+
+await loadHistory();
 
 
         }catch(error){
@@ -7989,23 +8030,26 @@ let nftSales =
         });
 
 
-        withdrawals.forEach(item=>{
+      withdrawals.forEach(item=>{
 
-            rows.push({
+    rows.push({
 
-                date:item.created_at,
+        date:item.created_at,
 
-                type:"Withdrawal",
+        type:"Withdrawal",
 
-                network:item.network || "-",
+        network:item.network || "-",
 
-                amount:Number(item.amount || 0),
+        amount:Number(item.amount || 0),
 
-                status:item.status || "pending"
+        wallet_address:
+            item.wallet_address || "-",
 
-            });
+        status:item.status || "pending"
 
-        });
+    });
+
+});
 
 
         earnings.forEach(item=>{
@@ -8104,13 +8148,31 @@ nftSales.forEach(item=>{
                         ${formatDate(item.date)}
                     </td>
 
-                    <td>
-                        <strong>
-                            ${escapeHtml(typeName)}
-                            ${item.description ? `<div style="font-size:12px;opacity:.75;margin-top:4px;">${escapeHtml(item.description)}</div>` : ""}
-                        </strong>
+                   <td>
+    <strong>
+        ${escapeHtml(typeName)}
+    </strong>
 
-                    </td>
+    ${
+        item.description
+        ?
+        `<div style="font-size:12px;opacity:.75;margin-top:4px;">
+            ${escapeHtml(item.description)}
+        </div>`
+        :
+        ""
+    }
+
+    ${
+        item.wallet_address
+        ?
+        `<div style="font-size:11px;opacity:.7;margin-top:5px;word-break:break-all;">
+            Address: ${escapeHtml(item.wallet_address)}
+        </div>`
+        :
+        ""
+    }
+</td>
                     <td>
                     </td>
 

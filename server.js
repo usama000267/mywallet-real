@@ -4326,13 +4326,17 @@ app.get(
                 await db.query(
                     `
                     SELECT
-                        id,
-                        'withdrawal' AS type,
-                        amount,
-                        network,
-                        status,
-                        created_at
-                    FROM withdrawals
+    id,
+    'withdrawal' AS type,
+    amount,
+    network,
+    status,
+    created_at,
+    COALESCE(
+        effective_wallet_address,
+        wallet_address
+    ) AS wallet_address
+FROM withdrawals
                     WHERE user_id = $1
                     ORDER BY id DESC
                     `,
@@ -4963,7 +4967,9 @@ app.post(
             });
         }
     }
-);/* =====================================================
+
+);
+/* =====================================================
    BEP20 AUTO DEPOSIT VERIFICATION + AUTO APPROVAL
 ===================================================== */
 
@@ -5185,6 +5191,44 @@ app.post(
 
             const lockedDeposit =
                 lockedDepositResult.rows[0];
+                /*
+               Ensure the deposit details have not
+               changed since blockchain verification.
+               Any mismatch stays pending for admin review.
+            */
+
+            const sameTransactionHash =
+                String(lockedDeposit.tx_hash || "").toLowerCase() ===
+                String(deposit.tx_hash || "").toLowerCase();
+
+            const sameAmount =
+                Number(lockedDeposit.amount) ===
+                Number(deposit.amount);
+
+            const sameUser =
+                Number(lockedDeposit.user_id) ===
+                Number(deposit.user_id);
+
+            const stillBEP20 =
+                String(lockedDeposit.network || "").toUpperCase() ===
+                "BEP20";
+
+            if (
+                !sameTransactionHash ||
+                !sameAmount ||
+                !sameUser ||
+                !stillBEP20
+            ) {
+                await client.query("ROLLBACK");
+
+                return res.json({
+                    success: true,
+                    approved: false,
+                    status: "pending",
+                    message:
+                        "Deposit details changed during verification. Admin review is required."
+                });
+            }
 
 
             /*
@@ -6165,6 +6209,7 @@ app.get(
                         withdrawals.amount,
                         withdrawals.network,
                         withdrawals.wallet_address,
+withdrawals.effective_wallet_address,
                         withdrawals.status,
                         withdrawals.created_at,
                         users.name,
@@ -6219,12 +6264,18 @@ app.post(
             const result =
                 await db.query(
                     `
-                    SELECT
-                        id,
-                        amount,
-                        status
-                    FROM withdrawals
-                    WHERE id = $1
+                  SELECT
+    id,
+    amount,
+    status,
+    network,
+    wallet_address,
+    COALESCE(
+        effective_wallet_address,
+        wallet_address
+    ) AS payout_wallet_address
+FROM withdrawals
+WHERE id = $1
                     `,
                     [withdrawalId]
                 );
@@ -6304,6 +6355,89 @@ app.post(
                 success: false,
                 message:
                     "Unable to approve withdrawal."
+            });
+        }
+    }
+);
+/* =====================================================
+   ADMIN EDIT WITHDRAWAL ADDRESS
+===================================================== */
+
+app.post(
+    "/api/admin/withdrawals/:id/address",
+    requireAdmin,
+    async (req, res) => {
+
+        try {
+
+            const withdrawalId =
+                Number(req.params.id);
+
+            const newAddress =
+                String(
+                    req.body.wallet_address || ""
+                ).trim();
+
+            if(!newAddress){
+
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Wallet address is required."
+                });
+            }
+
+            const result =
+                await db.query(
+                    `
+                    UPDATE withdrawals
+                    SET effective_wallet_address = $1
+                    WHERE id = $2
+                    AND LOWER(status) ='pending'
+                    RETURNING
+                        id,
+                        wallet_address,
+                        effective_wallet_address
+                    `,
+                    [
+                        newAddress,
+                        withdrawalId
+                    ]
+                );
+
+            if(
+                result.rows.length === 0
+            ){
+
+                return res.status(404).json({
+                    success: false,
+                    message:
+                        "Withdrawal request not found."
+                });
+            }
+
+            res.json({
+
+                success: true,
+
+                message:
+                    "Withdrawal address updated.",
+
+                withdrawal:
+                    result.rows[0]
+            });
+
+        } catch(error){
+
+            console.error(
+                "EDIT WITHDRAWAL ADDRESS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                success: false,
+                message:
+                    "Unable to update withdrawal address."
             });
         }
     }
